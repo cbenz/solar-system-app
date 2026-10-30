@@ -7,6 +7,14 @@ export const fr: Record<MessageKey, string> = {
 	'language.name.fr': 'Français',
 	'language.switch.action': 'Changer de langue : {language}',
 
+	'time.timeline': 'Chronologie',
+	'time.play': 'Lecture',
+	'time.pause': 'Pause',
+	'time.span.dayAndHalf': 'un jour et demi',
+	'time.span.week': 'une semaine',
+	'time.span.month': 'un mois',
+	'time.span.year': 'un an',
+
 	'term.activity': 'Activité',
 	'term.camera-preset': 'Preset de caméra',
 	'term.guide': 'Guide',

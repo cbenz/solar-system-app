@@ -1,12 +1,19 @@
 <script lang="ts">
-	import { getLocale, setLocale, t } from './store.svelte';
+	/**
+	 * The language switch: a dumb control. The session owns the active locale, so
+	 * this component only reports the language the child picked and shows the one
+	 * it would switch to, in that language's own words.
+	 */
 	import { nativeNameKey } from './messages';
+	import { translate } from './translate';
 	import type { Locale } from './locale';
 
+	let { locale, onSelect }: { locale: Locale; onSelect: (locale: Locale) => void } = $props();
+
 	// The button shows the language it switches to, in that language's own words.
-	const target = $derived<Locale>(getLocale() === 'fr' ? 'en' : 'fr');
-	const label = $derived(t(nativeNameKey[target]));
-	const action = $derived(t('language.switch.action', { language: label }));
+	const target = $derived<Locale>(locale === 'fr' ? 'en' : 'fr');
+	const label = $derived(translate(target, nativeNameKey[target]));
+	const action = $derived(translate(locale, 'language.switch.action', { language: label }));
 </script>
 
 <button
@@ -15,7 +22,7 @@
 	lang={target}
 	aria-label={action}
 	title={action}
-	onclick={() => setLocale(target)}
+	onclick={() => onSelect(target)}
 >
 	{label}
 </button>

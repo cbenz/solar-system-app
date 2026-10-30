@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import type { SceneSnapshot } from '$lib/session';
 import { createEarthTexture } from './earth-texture';
 import { createStarfield } from './starfield';
 import { EMPTY_GESTURE, reduceGesture, type GestureState } from './gesture';
@@ -18,6 +19,8 @@ const INITIAL_YAW = 0;
 const INITIAL_PITCH = 0.1;
 
 export type SceneHandle = {
+	/** Apply a session snapshot. Renders; never computes. */
+	update(snapshot: SceneSnapshot): void;
 	destroy(): void;
 };
 
@@ -47,8 +50,10 @@ export function createScene(host: HTMLElement): SceneHandle {
 	earth.rotation.order = 'YXZ';
 	scene.add(earth);
 
-	// Stand-in Sun with a fixed direction for now. Ticket 03 derives the light
-	// from the Sun's real position; nothing else in the scene may emit light.
+	// Stand-in Sun mesh, with its light coming from the Sun's real position. The
+	// session snapshot carries where the Earth is; here the Earth is the origin,
+	// so the Sun's direction is the opposite of the Earth's heliocentric vector.
+	// Ticket 04 owns the distance scale that will move the Earth along its orbit.
 	const sunlight = new THREE.DirectionalLight(0xffffff, 2.4);
 	sunlight.position.set(-4, 2, 3);
 	scene.add(sunlight);
@@ -73,6 +78,17 @@ export function createScene(host: HTMLElement): SceneHandle {
 
 	function updateRotation(): void {
 		earth.rotation.set(pitch, yaw, 0);
+	}
+
+	function applySnapshot(snapshot: SceneSnapshot): void {
+		const earthBody = snapshot.bodies.find((body) => body.id === 'earth');
+		if (earthBody === undefined) return;
+
+		// The Sun sits at the origin in the ecliptic frame; the Earth's own vector
+		// points away from it, so the light comes from the opposite direction.
+		const { x, y, z } = earthBody.position;
+		const length = Math.hypot(x, y, z) || 1;
+		sunlight.position.set((-x / length) * 10, (-y / length) * 10, (-z / length) * 10);
 	}
 
 	// --- Gestures -----------------------------------------------------------
@@ -189,6 +205,11 @@ export function createScene(host: HTMLElement): SceneHandle {
 	start();
 
 	return {
+		update(snapshot: SceneSnapshot): void {
+			if (destroyed) return;
+			applySnapshot(snapshot);
+		},
+
 		destroy(): void {
 			if (destroyed) return;
 			destroyed = true;

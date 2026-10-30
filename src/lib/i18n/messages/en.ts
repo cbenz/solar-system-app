@@ -10,6 +10,14 @@ export const en = {
 	'language.name.fr': 'Français',
 	'language.switch.action': 'Change language: {language}',
 
+	'time.timeline': 'Timeline',
+	'time.play': 'Play',
+	'time.pause': 'Pause',
+	'time.span.dayAndHalf': 'a day and a half',
+	'time.span.week': 'a week',
+	'time.span.month': 'a month',
+	'time.span.year': 'a year',
+
 	'term.activity': 'Activity',
 	'term.camera-preset': 'Camera preset',
 	'term.guide': 'Guide',
