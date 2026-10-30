@@ -15,6 +15,7 @@ import {
 	sunAzimuthDeg,
 	sunElevationDeg
 } from './observers';
+import { MAX_SHADOW_LENGTH_FACTOR, shadowGeometry } from './shadow';
 import type { BodyId, SceneObserver, SessionState } from './types';
 
 export type ObserverContributor = (state: SessionState) => SceneObserver[];
@@ -40,6 +41,16 @@ export const OBSERVER_CONTRIBUTORS: readonly ObserverContributor[] = [
 			visibleBodies: visibleBodies(state, observer),
 			// Filled by the night-sky pass in `scene.ts` (ticket 16).
 			visibilityLimit: false,
-			moon: null
+			moon: null,
+			// The gnomon (ticket 12). Only the Earth has a ground in the model; a
+			// body with no ground casts no shadow, which the null azimuth says.
+			shadow:
+				observer.bodyId === 'earth'
+					? shadowGeometry(observer.latitudeDeg, state.instant)
+					: {
+							sunElevationDeg: 0,
+							shadowLengthFactor: MAX_SHADOW_LENGTH_FACTOR,
+							shadowAzimuthDeg: null
+						}
 		}))
 ];

@@ -85,6 +85,17 @@ export type {
 	RelativeOrbitState,
 	SandboxParameter
 } from './sandbox';
+export {
+	MAX_SHADOW_LENGTH_FACTOR,
+	SHADOW_SATURATION_FACTOR,
+	SHORTEST_SHADOW_FLOOR,
+	gnomonScreen,
+	maxSunElevationDeg,
+	shadowExcessAt,
+	shadowGeometry,
+	shortestShadowLengthFactor
+} from './shadow';
+export type { GnomonGlyph, GnomonPoint, ShadowGeometry } from './shadow';
 export { BODY_CONTRIBUTORS } from './scene-bodies';
 export type { BodyContributor } from './scene-bodies';
 export { OBSERVER_CONTRIBUTORS } from './scene-observers';

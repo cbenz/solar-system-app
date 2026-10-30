@@ -69,6 +69,32 @@ export const fr: Record<MessageKey, string> = {
 	'activity.day-and-night.camera.close': 'De près',
 	'activity.day-and-night.setting.rotation': 'Vitesse de rotation',
 
+	'activity.shadows.camera.ground': 'Au sol',
+	'activity.shadows.camera.top': 'Au-dessus du bâton',
+	'activity.shadows.camera.wide': 'La Terre entière',
+	'activity.shadows.setting.speed': 'Vitesse du temps',
+	'activity.shadows.guide.watchTheStick':
+		"Ce bâton, c'est toi, debout. Son ombre, c'est le sol que le Soleil ne touche pas.",
+	'activity.shadows.guide.runTheDay':
+		"Fais tourner la journée. L'ombre est longue le matin, et de nouveau longue le soir.",
+	'activity.shadows.guide.aYear':
+		'Regarde maintenant midi pendant un an. Le même bâton fait une ombre plus longue en hiver.',
+	'activity.shadows.guide.otherHalf':
+		"À midi en juin, l'ombre pointe d'un côté. En décembre, elle pointe de l'autre.",
+
+	'mission.shadows.shortest.label': 'Ombre la plus courte',
+	'mission.shadows.shortest.brief': "Trouve le moment où l'ombre est la plus courte.",
+	'mission.shadows.shortest.predict':
+		"Place le temps là où tu crois que l'ombre est la plus courte, puis valide ton idée.",
+	'mission.shadows.shortest.claim.morning': "L'ombre est la plus courte le matin.",
+	'mission.shadows.shortest.claim.afternoon': "L'ombre est la plus courte l'après-midi.",
+	'mission.shadows.shortest.observe':
+		"Regarde l'ombre maintenant. Elle est aussi courte que possible aujourd'hui.",
+	'mission.shadows.shortest.explain':
+		"L'ombre la plus courte arrive à midi solaire, quand le Soleil est au plus haut.",
+	'mission.shadows.shortest.almost': 'Presque. Avance un peu vers midi.',
+	'mission.shadows.shortest.right': "La voilà : l'ombre la plus courte de la journée.",
+
 	'mission.phase.predict': 'Prédis',
 	'mission.phase.manipulate': 'Essaie',
 	'mission.phase.observe': 'Regarde',

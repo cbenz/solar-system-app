@@ -18,6 +18,7 @@
 import type { Locale } from '$lib/i18n/locale';
 import type { MessageKey } from '$lib/i18n/messages';
 import type { Activity } from '../../activities/types';
+import type { ShadowGeometry } from './shadow';
 
 /**
  * Epoch milliseconds in UTC. A plain number, never a `Date`, and never stored
@@ -249,6 +250,8 @@ export type SceneObserver = {
 	visibilityLimit: boolean;
 	/** The Moon for this POV, or null when it is not drawn (see `night-sky.ts`). */
 	moon: SceneMoon | null;
+	/** The gnomon's shadow for this POV: pure geometry, drawn on the ground plane. */
+	shadow: ShadowGeometry;
 };
 
 /**
