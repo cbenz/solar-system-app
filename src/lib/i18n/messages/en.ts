@@ -33,6 +33,12 @@ export const en = {
 	'term.true-size': 'True size',
 	'term.visibility-limit': 'Visibility limit',
 
+	'activity.leave': 'Leave activity',
+	'activity.day-and-night.camera.overview': 'Whole Earth',
+	'activity.day-and-night.camera.side': 'From the side',
+	'activity.day-and-night.camera.close': 'Close up',
+	'activity.day-and-night.setting.rotation': 'Rotation speed',
+
 	'scale.distancesNotToScale': 'The distances between them are shortened so you can see everything.',
 	'scale.sizesNotToScale': 'The Earth, the Moon and the Sun are drawn bigger than they really are.'
 } as const;

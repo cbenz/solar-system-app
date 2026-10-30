@@ -27,10 +27,20 @@ concern. Do not grow a god-reducer; add a file and append it to a list.
 | `snap.ts` | the pure `snap(instant, snapPoints, ratio)` rule. |
 | `snap-points.ts` | which instants are worth snapping to, for a session state. |
 | `state.ts` | `createInitialState`, `reconcileTimeSpan` (span and instant normalisation). |
-| `scene.ts` | composes `scene-bodies.ts` and `scene-observers.ts` into a `SceneSnapshot`. |
+| `scene.ts` | composes `scene-bodies.ts`, `scene-observers.ts` and `scene-markers.ts` into a `SceneSnapshot`. |
+| `scene-markers.ts` | which activity markers are drawn on which bodies (sandbox only). |
+| `subsystem.ts` | `Subsystem` (a tuple starting with the Sun) and `withSun`, the normaliser. |
+| `camera.ts` | `clampCamera`: the session's answer to a camera request; free in the sandbox, clamped to the open activity's presets. |
 | `reducer.ts` | the handler list and the one entry point. |
-| `handlers/*.ts` | one module per event family (`place-observer` owns observer identity and colour). |
+| `handlers/*.ts` | one module per event family (`place-observer` owns observer identity and colour, `open-activity` owns the sandbox round trip, `set-setting` validates against the activity, `camera` owns presets and the clamp). |
 | `index.ts` | the public surface; components import only from here. |
+
+## Activities
+
+The catalogue lives in `src/activities/` and is discovered by Vite's
+`import.meta.glob`. `createInitialState` stores it on `state.activities`, so the
+session resolves `activityId` without importing the registry and a test can
+inject a fixture. See `src/activities/README.md` for the declaration recipe.
 
 ## Adding an event family
 
