@@ -16,7 +16,7 @@
 	 * Everything the POV draws is either in `visibleBodies` or decorative.
 	 */
 	import { onMount } from 'svelte';
-	import { skyToScreen, starField, NIGHT_SKY_SEED, type SceneObserver } from '$lib/session';
+	import { gnomonScreen, skyToScreen, starField, NIGHT_SKY_SEED, type SceneObserver } from '$lib/session';
 
 	let { entry }: { entry: SceneObserver } = $props();
 
@@ -86,6 +86,39 @@
 		context.moveTo(0, horizon);
 		context.lineTo(width, horizon);
 		context.stroke();
+
+		// The gnomon: a stick standing on the ground and the shadow it casts. Both
+		// positions come from the session's pure geometry; this only strokes them.
+		const glyph = gnomonScreen(entry.shadow, viewport);
+
+		if (glyph.shadow !== null && daylight) {
+			const shadow = glyph.shadow;
+			context.beginPath();
+			context.moveTo(shadow.baseLeft.x, shadow.baseLeft.y);
+			context.lineTo(shadow.baseRight.x, shadow.baseRight.y);
+			context.lineTo(shadow.tipRight.x, shadow.tipRight.y);
+			context.lineTo(shadow.tipLeft.x, shadow.tipLeft.y);
+			context.closePath();
+			context.fillStyle = 'rgba(10, 14, 8, 0.55)';
+			context.fill();
+		}
+
+		const stick = glyph.stick;
+		context.fillStyle = daylight ? '#8a6a3f' : '#3a3024';
+		context.fillRect(
+			stick.x - stick.halfWidth,
+			stick.topY,
+			stick.halfWidth * 2,
+			stick.baseY - stick.topY
+		);
+		// A lit edge, so the stick reads as a solid object rather than a line.
+		context.fillStyle = daylight ? '#d8b07a' : '#5b4a33';
+		context.fillRect(
+			stick.x - stick.halfWidth,
+			stick.topY,
+			Math.max(0.5, stick.halfWidth * 0.7),
+			stick.baseY - stick.topY
+		);
 
 		// The Sun is drawn while it is in `visibleBodies`, or — with the limit off
 		// — always, so the panel can show it just under the horizon after dark.
