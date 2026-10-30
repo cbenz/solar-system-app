@@ -13,6 +13,15 @@ export {
 } from './state';
 export type { InitialStateOptions } from './state';
 export { buildScene } from './scene';
+export { markersFor } from './scene-markers';
+export {
+	DEFAULT_CAMERA,
+	cameraForPreset,
+	clampCamera,
+	currentActivity
+} from './camera';
+export { isSubsystem, withSun } from './subsystem';
+export type { Subsystem } from './subsystem';
 export { MAX_OBSERVERS } from './handlers/place-observer';
 export { OBSERVER_COLOURS } from './observer-colour';
 export { HORIZON_FRACTION, horizonY, skyToScreen } from './sky';
@@ -68,8 +77,11 @@ export {
 export type { ScaleFactors } from './scale';
 export type {
 	BodyId,
+	CameraState,
 	Instant,
 	Observer,
+	SandboxView,
+	SceneMarker,
 	SceneBody,
 	SceneObserver,
 	SceneSnapshot,

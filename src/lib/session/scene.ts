@@ -5,6 +5,7 @@
 
 import { BODY_CONTRIBUTORS } from './scene-bodies';
 import { OBSERVER_CONTRIBUTORS } from './scene-observers';
+import { markersFor } from './scene-markers';
 import type { SceneSnapshot, SessionState } from './types';
 
 export function buildScene(state: SessionState): SceneSnapshot {
@@ -15,5 +16,5 @@ export function buildScene(state: SessionState): SceneSnapshot {
 
 	const observers = OBSERVER_CONTRIBUTORS.flatMap((contributor) => contributor(state));
 
-	return { bodies, observers };
+	return { bodies, observers, markers: markersFor(state), camera: state.camera };
 }
