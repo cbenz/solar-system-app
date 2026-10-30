@@ -36,8 +36,10 @@ concern. Do not grow a god-reducer; add a file and append it to a list.
 | `scene-markers.ts` | which activity markers are drawn on which bodies (sandbox only). |
 | `subsystem.ts` | `Subsystem` (a tuple starting with the Sun) and `withSun`, the normaliser. |
 | `camera.ts` | `clampCamera`: the session's answer to a camera request; free in the sandbox, clamped to the open activity's presets. |
+| `guide.ts` | the guide's behaviour: `applyGuideStep` (camera preset, instant, tilt, POV set), `nextGuideStep` (start on the first press, then advance one step), `guideFor`, `currentGuideStep`. Nothing watches a clock. |
+| `povs.ts` | `observersFromPovs`: one colour assignment shared by an activity opening and a guide step changing the POV set. |
 | `reducer.ts` | the handler list and the one entry point. |
-| `handlers/*.ts` | one module per event family (`place-observer` owns observer identity and colour, `open-activity` owns the sandbox round trip, `set-setting` validates against the activity, `camera` owns presets and the clamp). |
+| `handlers/*.ts` | one module per event family (`place-observer` owns observer identity and colour, `open-activity` owns the sandbox round trip, `guide` owns `next-guide-step`, `set-setting` validates against the activity, `camera` owns presets and the clamp). |
 | `index.ts` | the public surface; components import only from here. |
 
 ## Activities
