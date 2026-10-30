@@ -26,6 +26,7 @@ concern. Do not grow a god-reducer; add a file and append it to a list.
 | `pick.ts` | `pickLatitude`: the pure globe hit-test behind a tap — a ray, a sphere, and the latitude of the near crossing; a miss or the far side is `null`. |
 | `places.ts` | `placeName`: the geographic band of a latitude as a message key, with every threshold derived from the obliquity constant. |
 | `sky.ts` | `skyToScreen`: the POV panel's only geometry, a pure (altitude, azimuth) → pixel map. |
+| `shadow.ts` | the gnomon: shadow length and azimuth away from the Sun, the day's shortest, and the POV ground-plane glyph. |
 | `moon.ts` | the Moon as the eye sees it: phase from the elongation, angular size, apparent magnitude. |
 | `visibility.ts` | the visibility limit's heuristic: `isAboveVisibilityLimit`, the limiting magnitude, the angular floor. |
 | `night-sky.ts` | `visibleBodiesFor` (narrowing by the limit), the Moon per POV, and the seeded decorative `starField`. |
