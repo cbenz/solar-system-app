@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { AU_KM, earthSunDistanceAu } from './ephemeris';
-import { applyEvent, buildScene, createInitialState } from './index';
+import { UnhandledSessionEventError, applyEvent, buildScene, createInitialState } from './index';
 import type { BodyId, Observer, SceneSnapshot, SessionState } from './types';
 
 const DAY = 86_400_000;
@@ -60,8 +60,11 @@ describe('the session module', () => {
 		expect(() => applyEvent(state, { type: 'switch-subsystem', subsystem: ['sun'] })).toThrow(
 			/switch-subsystem/
 		);
-		expect(() => applyEvent(state, { type: 'set-setting', key: 'x', value: 1 })).toThrow(
-			/set-setting/
+		// `set-setting` is implemented (ticket 16's visibility limit), so the
+		// unimplemented-event example has to be one that still is. Ticket 07 owns
+		// `switch-subsystem`.
+		expect(() => applyEvent(state, { type: 'switch-subsystem', subsystem: ['sun'] })).toThrow(
+			UnhandledSessionEventError
 		);
 	});
 
