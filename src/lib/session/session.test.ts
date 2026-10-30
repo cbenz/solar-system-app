@@ -55,8 +55,8 @@ describe('the session module', () => {
 	it('rejects an event no ticket has implemented yet, naming it', () => {
 		const state = createInitialState();
 
-		expect(() => applyEvent(state, { type: 'toggle-true-distance' })).toThrow(
-			/toggle-true-distance/
+		expect(() => applyEvent(state, { type: 'switch-subsystem', subsystem: ['sun'] })).toThrow(
+			/switch-subsystem/
 		);
 		expect(() => applyEvent(state, { type: 'set-setting', key: 'x', value: 1 })).toThrow(
 			/set-setting/

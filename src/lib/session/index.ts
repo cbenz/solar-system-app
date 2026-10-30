@@ -45,6 +45,18 @@ export {
 	sunLongitudeDeg
 } from './ephemeris';
 export { isDaylight, sunElevationDeg } from './observers';
+export {
+	bodyScale,
+	compressedDistanceAu,
+	DISTANCE_FLOOR_AU,
+	distortionNotice,
+	DRAWN_EARTH_RADIUS_AU,
+	enlargedRadiusAu,
+	primaryOf,
+	SUN_RADIUS_CAP_AU,
+	trueRadiusAu
+} from './scale';
+export type { ScaleFactors } from './scale';
 export type {
 	BodyId,
 	Instant,

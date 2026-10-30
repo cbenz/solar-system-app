@@ -9,6 +9,7 @@
 
 import { handleScrubTo } from './handlers/scrub-to';
 import { handleSetLocale } from './handlers/set-locale';
+import { handleToggleScale } from './handlers/toggle-scale';
 import { buildScene } from './scene';
 import { reconcileTimeSpan } from './state';
 import type { SessionEvent, SessionResult, SessionState } from './types';
@@ -16,7 +17,11 @@ import type { SessionEvent, SessionResult, SessionState } from './types';
 /** A handler returns `null` for events that are not its business. */
 export type SessionHandler = (state: SessionState, event: SessionEvent) => SessionState | null;
 
-export const SESSION_HANDLERS: readonly SessionHandler[] = [handleScrubTo, handleSetLocale];
+export const SESSION_HANDLERS: readonly SessionHandler[] = [
+	handleScrubTo,
+	handleSetLocale,
+	handleToggleScale
+];
 
 /**
  * An event of the union that no ticket has implemented yet. Loud on purpose: a

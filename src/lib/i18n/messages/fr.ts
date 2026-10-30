@@ -27,5 +27,9 @@ export const fr: Record<MessageKey, string> = {
 	'term.space-view': "Vue de l'espace",
 	'term.subsystem': 'Sous-système',
 	'term.true-distance': 'Distance réelle',
-	'term.visibility-limit': 'Limite de visibilité'
+	'term.true-size': 'Taille réelle',
+	'term.visibility-limit': 'Limite de visibilité',
+
+	'scale.distancesNotToScale': 'Les distances entre eux sont raccourcies pour que tu puisses tout voir.',
+	'scale.sizesNotToScale': "La Terre, la Lune et le Soleil sont dessinés plus grands qu'en vrai."
 };
