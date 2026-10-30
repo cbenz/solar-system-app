@@ -3,6 +3,7 @@
  * function of the instant, which is what makes scrubbing reversible.
  */
 
+import { sceneMission } from './missions';
 import { withNightSky } from './night-sky';
 import { BODY_CONTRIBUTORS } from './scene-bodies';
 import { OBSERVER_CONTRIBUTORS } from './scene-observers';
@@ -20,5 +21,11 @@ export function buildScene(state: SessionState): SceneSnapshot {
 		(entry) => withNightSky(entry, state)
 	);
 
-	return { bodies, observers, markers: markersFor(state), camera: state.camera };
+	return {
+		bodies,
+		observers,
+		markers: markersFor(state),
+		camera: state.camera,
+		mission: sceneMission(state)
+	};
 }

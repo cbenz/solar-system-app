@@ -22,6 +22,7 @@
 	} from '$lib/session';
 	import ObserverLabels from '$lib/ui/ObserverLabels.svelte';
 	import ActivityToolbar from '$lib/ui/ActivityToolbar.svelte';
+	import MissionPanel from '$lib/ui/MissionPanel.svelte';
 	import PovDock from '$lib/ui/PovDock.svelte';
 	import ScaleBanner from '$lib/ui/ScaleBanner.svelte';
 	import Timeline from '$lib/ui/Timeline.svelte';
@@ -77,6 +78,7 @@
 <div class="scene" bind:this={host}></div>
 <ObserverLabels entries={snapshot.observers} positions={labelPositions} locale={session.locale} />
 <ActivityToolbar session={session} {dispatch} />
+<MissionPanel mission={snapshot.mission} locale={session.locale} {dispatch} />
 <PovDock observers={snapshot.observers} />
 <ScaleBanner session={session} {dispatch} />
 <Timeline session={session} {dispatch} />

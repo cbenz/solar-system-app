@@ -30,6 +30,18 @@
 			</button>
 		{/each}
 
+		{#if session.phase === 'sandbox'}
+			{#each activity.missions as mission (mission.id)}
+				<button
+					type="button"
+					class="mission"
+					onclick={() => dispatch({ type: 'start-mission', missionId: mission.id })}
+				>
+					{translate(session.locale, mission.label)}
+				</button>
+			{/each}
+		{/if}
+
 		<button
 			type="button"
 			class="leave"
@@ -67,6 +79,7 @@
 	}
 
 	.preset,
+	.mission,
 	.leave {
 		/* One thumb, big enough for a finger. */
 		min-height: 44px;
@@ -94,6 +107,7 @@
 	}
 
 	.preset:focus-visible,
+	.mission:focus-visible,
 	.leave:focus-visible {
 		outline: 2px solid #7dd3fc;
 		outline-offset: 3px;
