@@ -140,6 +140,38 @@ export const en = {
 	'activity.latitudes.mission.zenith.right':
 		'That is the June solstice: the only day the Sun reaches the zenith there.',
 
+	'activity.eclipses.camera.overview': 'Whole scene',
+	'activity.eclipses.camera.aboveEcliptic': 'Above the orbits',
+	'activity.eclipses.camera.alongTheLine': 'Along the Sun–Earth line',
+	'activity.eclipses.setting.moonPlacement': 'Place the Moon',
+	'activity.eclipses.guide.alignment':
+		'Drag the Moon along its grey ring. Only one place on that ring puts it in front of the Sun.',
+	'activity.eclipses.guide.threeViews':
+		'Look at the three views. The same instant, three places: one in the full shadow, one in the half shadow, one in plain sunlight.',
+	'activity.eclipses.guide.mostMonths':
+		'A month later the Moon lines up again, and nothing happens: it passes above the Sun, off the edge of its ring.',
+	'activity.eclipses.guide.earthShadow':
+		'Now the other way round. The Moon slides into the Earth’s shadow, and everyone on the night side sees the same thing.',
+	'activity.eclipses.guide.earthShadowTotal':
+		'Fully inside the shadow, the Moon goes dim and red. Nothing hides the Sun this time: the Earth is doing the hiding.',
+
+	'activity.eclipses.mission.lineUp.label': 'Line them up',
+	'activity.eclipses.mission.lineUp.brief':
+		'Place the Moon so that it hides the Sun from the first observer.',
+	'activity.eclipses.mission.lineUp.prediction':
+		'Put the Moon where you think it has to be, then lock in your guess.',
+	'activity.eclipses.mission.lineUp.claim.moonInFront':
+		'The Moon has to be between the Earth and the Sun.',
+	'activity.eclipses.mission.lineUp.claim.earthInFront':
+		'The Earth has to be between the Moon and the Sun.',
+	'activity.eclipses.mission.lineUp.observe':
+		'Look at the first view: the Moon’s disc sits over the Sun’s.',
+	'activity.eclipses.mission.lineUp.explain':
+		'A solar eclipse is the Moon passing in front of the Sun. That needs the right month as well as the right place on the ring.',
+	'activity.eclipses.mission.lineUp.close':
+		'Almost. Slide the Moon a little further along its ring.',
+	'activity.eclipses.mission.lineUp.right': 'There it is: the Sun is covered.',
+
 	'pov.sunHeight': 'Sun height: {height}°',
 
 	'scale.distancesNotToScale': 'The distances between them are shortened so you can see everything.',

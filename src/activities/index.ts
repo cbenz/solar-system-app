@@ -41,6 +41,7 @@ export type {
 	LatitudeCircleSpec,
 	Level,
 	MissionSpec,
+	OrbitPathSpec,
 	PovSpec,
 	PresetId,
 	SettingSpec
