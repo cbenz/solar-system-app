@@ -6,6 +6,7 @@
 import { activities as discoveredActivities } from '../../activities';
 import type { Activity } from '../../activities/types';
 import { DEFAULT_LOCALE, type Locale } from '$lib/i18n/locale';
+import { FIRST_POV_ID } from './handlers/place-observer';
 import { DEFAULT_CAMERA } from './camera';
 import { nextObserverColour } from './observer-colour';
 import { sandboxSpan } from './time';
@@ -49,7 +50,7 @@ export function createInitialState(options: InitialStateOptions = {}): SessionSt
 		// (ticket 06). Placement reuses the same id and colour.
 		observers: [
 			{
-				id: 'pov-1',
+				id: FIRST_POV_ID,
 				bodyId: 'earth',
 				latitudeDeg: 48.8566,
 				colour: nextObserverColour([])

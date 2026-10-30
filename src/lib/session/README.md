@@ -23,6 +23,8 @@ concern. Do not grow a god-reducer; add a file and append it to a list.
 | `time.ts` | instant arithmetic, Julian Day, span ↔ track ratio, playback tick, span words. |
 | `observers.ts` | the observer's surface normal, Sun elevation, azimuth and daylight — one dot product, one rotation function. |
 | `observer-colour.ts` | the fixed three-colour observer palette and its first-free assignment. |
+| `pick.ts` | `pickLatitude`: the pure globe hit-test behind a tap — a ray, a sphere, and the latitude of the near crossing; a miss or the far side is `null`. |
+| `places.ts` | `placeName`: the geographic band of a latitude as a message key, with every threshold derived from the obliquity constant. |
 | `sky.ts` | `skyToScreen`: the POV panel's only geometry, a pure (altitude, azimuth) → pixel map. |
 | `moon.ts` | the Moon as the eye sees it: phase from the elongation, angular size, apparent magnitude. |
 | `visibility.ts` | the visibility limit's heuristic: `isAboveVisibilityLimit`, the limiting magnitude, the angular floor. |

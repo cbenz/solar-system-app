@@ -33,6 +33,18 @@ export const en = {
 	'term.true-size': 'True size',
 	'term.visibility-limit': 'Visibility limit',
 
+	'place.name.equator': 'Equator',
+	'place.name.tropicOfCancer': 'Tropic of Cancer',
+	'place.name.tropicOfCapricorn': 'Tropic of Capricorn',
+	'place.name.northernTropics': 'Northern tropics',
+	'place.name.southernTropics': 'Southern tropics',
+	'place.name.northernTemperate': 'Northern temperate zone',
+	'place.name.southernTemperate': 'Southern temperate zone',
+	'place.name.arcticCircle': 'Arctic Circle',
+	'place.name.antarcticCircle': 'Antarctic Circle',
+	'place.name.arctic': 'Arctic',
+	'place.name.antarctic': 'Antarctic',
+
 	'activity.leave': 'Leave activity',
 	'activity.day-and-night.camera.overview': 'Whole Earth',
 	'activity.day-and-night.camera.side': 'From the side',

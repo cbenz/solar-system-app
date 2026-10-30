@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
 	EMPTY_GESTURE,
+	cameraControlsEnabled,
 	reduceGesture,
 	type GestureDelta,
 	type GestureState,
@@ -120,5 +121,124 @@ describe('changing the number of fingers', () => {
 		const cancelled = apply(pressed, { phase: 'cancel', pointerId: 1, position: { x: 0, y: 0 } });
 
 		expect(cancelled.state.pointers).toHaveLength(0);
+	});
+});
+
+describe('placing an observer freezes the camera', () => {
+	const ZERO_DELTA: GestureDelta = { yaw: 0, pitch: 0, zoom: 1 };
+	const observerHit = { kind: 'observer' as const, observerId: 'pov-1' };
+	const globeHit = (latitudeDeg: number) => ({ kind: 'globe' as const, latitudeDeg });
+
+	function press(hit: { kind: 'observer'; observerId: string } | { kind: 'globe'; latitudeDeg: number } | { kind: 'miss' }, x = 100, y = 100) {
+		return apply(EMPTY_GESTURE, { phase: 'down', pointerId: 1, position: { x, y }, hit });
+	}
+
+	function drag(state: GestureState, x: number, y: number, latitudeDeg?: number) {
+		return apply(state, { phase: 'move', pointerId: 1, position: { x, y }, latitudeDeg });
+	}
+
+	function release(state: GestureState, x = 100, y = 100) {
+		return apply(state, { phase: 'up', pointerId: 1, position: { x, y } });
+	}
+
+	it('suppresses orbit and zoom from the moment a tap starts', () => {
+		const pressed = press(globeHit(12));
+
+		expect(cameraControlsEnabled(pressed.state)).toBe(false);
+		expect(pressed.delta).toEqual(ZERO_DELTA);
+	});
+
+	it('places once on release, at the latitude that was tapped', () => {
+		const pressed = press(globeHit(12));
+		const slid = drag(pressed.state, 102, 101);
+		const released = release(slid.state, 102, 101);
+
+		expect(slid.delta).toEqual(ZERO_DELTA);
+		expect(slid.placement).toBeNull();
+		expect(released.placement).toEqual({ kind: 'place', latitudeDeg: 12 });
+		expect(cameraControlsEnabled(released.state)).toBe(true);
+	});
+
+	it('moves the grabbed observer along its meridian and never the camera', () => {
+		const pressed = press(observerHit);
+		expect(cameraControlsEnabled(pressed.state)).toBe(false);
+
+		const first = drag(pressed.state, 100, 90, -5);
+		const second = drag(first.state, 100, 140, 20);
+
+		expect(first.delta).toEqual(ZERO_DELTA);
+		expect(second.delta).toEqual(ZERO_DELTA);
+		expect(first.placement).toEqual({ kind: 'drag', observerId: 'pov-1', latitudeDeg: -5 });
+		expect(second.placement).toEqual({ kind: 'drag', observerId: 'pov-1', latitudeDeg: 20 });
+		expect(cameraControlsEnabled(second.state)).toBe(false);
+
+		const released = release(second.state, 100, 140);
+
+		expect(released.delta).toEqual(ZERO_DELTA);
+		expect(released.placement).toBeNull();
+		expect(cameraControlsEnabled(released.state)).toBe(true);
+	});
+
+	it('ignores a move that leaves the globe, keeping the last latitude', () => {
+		const pressed = press(observerHit);
+		const offGlobe = drag(pressed.state, 400, 400, undefined);
+
+		expect(offGlobe.placement).toBeNull();
+		expect(offGlobe.delta).toEqual(ZERO_DELTA);
+	});
+
+	it('restores the camera and places nothing when the pointer is cancelled', () => {
+		const pressed = press(observerHit);
+		const moved = drag(pressed.state, 100, 140, 25);
+		const cancelled = apply(moved.state, { phase: 'cancel', pointerId: 1, position: { x: 100, y: 140 } });
+
+		expect(cancelled.placement).toBeNull();
+		expect(cancelled.delta).toEqual(ZERO_DELTA);
+		expect(cameraControlsEnabled(cancelled.state)).toBe(true);
+	});
+
+	it('does not place anything on a cancel of a tap', () => {
+		const pressed = press(globeHit(12));
+		const cancelled = apply(pressed.state, { phase: 'cancel', pointerId: 1, position: { x: 100, y: 100 } });
+
+		expect(cancelled.placement).toBeNull();
+		expect(cameraControlsEnabled(cancelled.state)).toBe(true);
+	});
+
+	it('still turns the Earth when a drag starts on the empty globe', () => {
+		const pressed = press(globeHit(12));
+		const dragged = drag(pressed.state, 160, 100);
+
+		// Past the tap slop the gesture becomes ticket 01's rotation, and places nothing.
+		expect(dragged.placement).toBeNull();
+		expect(dragged.delta.yaw).toBeGreaterThan(0);
+		expect(cameraControlsEnabled(dragged.state)).toBe(true);
+
+		const released = release(dragged.state, 160, 100);
+		expect(released.placement).toBeNull();
+	});
+
+	it('leaves a pointer that landed off the globe to ticket 01', () => {
+		const pressed = press({ kind: 'miss' });
+		const dragged = drag(pressed.state, 130, 100);
+
+		expect(pressed.delta).toEqual(ZERO_DELTA);
+		expect(dragged.delta.yaw).toBeGreaterThan(0);
+		expect(dragged.placement).toBeNull();
+		expect(cameraControlsEnabled(dragged.state)).toBe(true);
+	});
+
+	it('abandons a placement gesture when a second finger lands, so the pinch works', () => {
+		const pressed = press(observerHit);
+		const pinched = apply(pressed.state, {
+			phase: 'down',
+			pointerId: 2,
+			position: { x: 200, y: 100 },
+			hit: { kind: 'miss' }
+		});
+
+		expect(pinched.state.placement).toBeNull();
+		expect(cameraControlsEnabled(pinched.state)).toBe(true);
+		expect(pinched.placement).toBeNull();
 	});
 });
