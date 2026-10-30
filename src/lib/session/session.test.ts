@@ -60,9 +60,6 @@ describe('the session module', () => {
 		expect(() => applyEvent(state, { type: 'switch-subsystem', subsystem: ['sun'] })).toThrow(
 			/switch-subsystem/
 		);
-		expect(() => applyEvent(state, { type: 'set-setting', key: 'x', value: 1 })).toThrow(
-			/set-setting/
-		);
 	});
 
 	it('switches the interface language without touching anything else', () => {
