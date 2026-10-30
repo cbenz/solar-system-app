@@ -42,6 +42,8 @@ export const OBSERVER_CONTRIBUTORS: readonly ObserverContributor[] = [
 			// Filled by the night-sky pass in `scene.ts` (ticket 16).
 			visibilityLimit: false,
 			moon: null,
+			// Filled by the eclipse pass in `scene.ts` (ticket 14).
+			eclipse: { kind: 'none', darkening: 0 },
 			// The gnomon (ticket 12). Only the Earth has a ground in the model; a
 			// body with no ground casts no shadow, which the null azimuth says.
 			shadow:

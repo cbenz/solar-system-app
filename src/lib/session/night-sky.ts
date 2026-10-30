@@ -30,7 +30,9 @@ import {
 	pointAltitudeAzimuthDeg,
 	sunElevationDeg
 } from './observers';
+import { add, earthHeliocentricPositionAu } from './ephemeris';
 import { SUN_APPARENT_MAGNITUDE, isAboveVisibilityLimit } from './visibility';
+import { lunarEclipseFor, placedMoonGeocentricAu } from './eclipse';
 import type {
 	BodyId,
 	Instant,
@@ -148,9 +150,12 @@ export function moonFor(
 	if (!state.subsystem.includes('moon')) return null;
 
 	const instant = state.instant;
-	const moonCentre = bodyCenterAu('moon', instant);
+	// The Moon where this session has it: the ephemeris, moved along its orbit if
+	// the activity let the child place it (ticket 14).
+	const moonGeocentric = placedMoonGeocentricAu(state, instant);
+	const moonCentre = add(earthHeliocentricPositionAu(instant), moonGeocentric);
 	const { altitudeDeg, azimuthDeg } = pointAltitudeAzimuthDeg(observer, moonCentre, instant);
-	const phase = moonPhase(instant);
+	const phase = moonPhase(instant, moonGeocentric);
 
 	const limbAngleDeg =
 		(Math.atan2(
@@ -166,9 +171,10 @@ export function moonFor(
 		illuminatedFraction: phase.illuminatedFraction,
 		phaseAngleDeg: phase.phaseAngleDeg,
 		waxing: phase.waxing,
-		angularDiameterDeg: moonAngularDiameterDeg(instant),
-		apparentMagnitude: moonApparentMagnitude(instant),
-		litLimbAngleDeg: limbAngleDeg
+		angularDiameterDeg: moonAngularDiameterDeg(instant, moonGeocentric),
+		apparentMagnitude: moonApparentMagnitude(instant, moonGeocentric),
+		litLimbAngleDeg: limbAngleDeg,
+		eclipse: null
 	};
 }
 
@@ -182,9 +188,12 @@ export function withNightSky(entry: SceneObserver, state: SessionState): SceneOb
 		...entry,
 		visibleBodies: visibleBodiesFor(state, entry.observer),
 		visibilityLimit: visibilityLimitEnabled(state),
-		moon: moonFor(entry.observer, state, {
-			altitudeDeg: entry.sunElevationDeg,
-			azimuthDeg: entry.sunAzimuthDeg
-		})
+		moon: lunarEclipseFor(
+			state,
+			moonFor(entry.observer, state, {
+				altitudeDeg: entry.sunElevationDeg,
+				azimuthDeg: entry.sunAzimuthDeg
+			})
+		)
 	};
 }

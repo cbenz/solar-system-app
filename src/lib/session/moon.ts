@@ -17,7 +17,7 @@ import {
 	sunGeocentricPositionAu,
 	unit
 } from './ephemeris';
-import type { Instant } from './types';
+import type { Instant, Vec3 } from './types';
 
 const DEG = Math.PI / 180;
 const RAD = 180 / Math.PI;
@@ -44,9 +44,11 @@ function clampUnit(value: number): number {
 }
 
 /** The Moon's distance from the Earth's centre, in km. */
-export function moonDistanceKm(instant: Instant): number {
-	const position = moonGeocentricPositionAu(instant);
-	return Math.hypot(position.x, position.y, position.z) * AU_KM;
+export function moonDistanceKm(
+	instant: Instant,
+	positionAu: Vec3 = moonGeocentricPositionAu(instant)
+): number {
+	return Math.hypot(positionAu.x, positionAu.y, positionAu.z) * AU_KM;
 }
 
 /**
@@ -57,8 +59,11 @@ export function moonDistanceKm(instant: Instant): number {
  * from the `z` component of the cross product, which is that sine scaled by the
  * two lengths — positive while the Moon runs ahead of the Sun in longitude.
  */
-export function moonPhase(instant: Instant): MoonPhase {
-	const moon = moonGeocentricPositionAu(instant);
+export function moonPhase(
+	instant: Instant,
+	moonPositionAu: Vec3 = moonGeocentricPositionAu(instant)
+): MoonPhase {
+	const moon = moonPositionAu;
 	const sun = sunGeocentricPositionAu(instant);
 
 	const elongationDeg = Math.acos(clampUnit(dot(unit(moon), unit(sun)))) * RAD;
@@ -81,17 +86,23 @@ export function moonPhase(instant: Instant): MoonPhase {
  * the *Explanatory Supplement to the Astronomical Almanac*; good to ±0.1 mag at
  * mean distance.
  */
-export function moonApparentMagnitude(instant: Instant): number {
-	const phaseAngle = Math.abs(moonPhase(instant).phaseAngleDeg);
+export function moonApparentMagnitude(
+	instant: Instant,
+	positionAu: Vec3 = moonGeocentricPositionAu(instant)
+): number {
+	const phaseAngle = Math.abs(moonPhase(instant, positionAu).phaseAngleDeg);
 	const phaseTerm = -12.73 + 0.026 * phaseAngle + 4e-9 * phaseAngle ** 4;
-	const distanceTerm = 5 * Math.log10(MOON_MEAN_DISTANCE_KM / moonDistanceKm(instant));
+	const distanceTerm = 5 * Math.log10(MOON_MEAN_DISTANCE_KM / moonDistanceKm(instant, positionAu));
 
 	return phaseTerm + distanceTerm;
 }
 
 /** The Moon's apparent angular diameter, in degrees, from its true distance. */
-export function moonAngularDiameterDeg(instant: Instant): number {
-	return 2 * Math.asin(MOON_RADIUS_KM / moonDistanceKm(instant)) * RAD;
+export function moonAngularDiameterDeg(
+	instant: Instant,
+	positionAu: Vec3 = moonGeocentricPositionAu(instant)
+): number {
+	return 2 * Math.asin(MOON_RADIUS_KM / moonDistanceKm(instant, positionAu)) * RAD;
 }
 
 /**

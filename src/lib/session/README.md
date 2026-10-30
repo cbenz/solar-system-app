@@ -27,6 +27,8 @@ concern. Do not grow a god-reducer; add a file and append it to a list.
 | `places.ts` | `placeName`: the geographic band of a latitude as a message key, with every threshold derived from the obliquity constant. |
 | `sky.ts` | `skyToScreen`: the POV panel's only geometry, a pure (altitude, azimuth) → pixel map. |
 | `shadow.ts` | the gnomon: shadow length and azimuth away from the Sun, the day's shortest, and the POV ground-plane glyph. |
+| `eclipse.ts` | the two shadow cones and the angular predicate for both eclipse directions, the Moon placed on its inclined orbit (a setting, offset zero = the ephemeris Moon), and the drawn orbit rings. |
+| `orbit-paths.ts` | which orbit rings a state draws, sampled relative to the Earth with the distance factor of the body they belong to. |
 | `moon.ts` | the Moon as the eye sees it: phase from the elongation, angular size, apparent magnitude. |
 | `visibility.ts` | the visibility limit's heuristic: `isAboveVisibilityLimit`, the limiting magnitude, the angular floor. |
 | `night-sky.ts` | `visibleBodiesFor` (narrowing by the limit), the Moon per POV, and the seeded decorative `starField`. |
