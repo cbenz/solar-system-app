@@ -66,6 +66,15 @@ export type SettingSpec = {
 	  }
 );
 
+/**
+ * A latitude circle an activity draws on the Earth, beyond the Equator that is
+ * always drawn. The renderer owns the colour; the activity owns the latitude.
+ */
+export type LatitudeCircleSpec = {
+	id: string;
+	latitudeDeg: number;
+};
+
 /** One scripted guide step. Ticket 08 drives the sequence; here it is data. */
 export type GuideStep = {
 	narration: MessageKey;
@@ -109,6 +118,8 @@ export type Activity = {
 	subsystem: Subsystem;
 	povs: readonly PovSpec[];
 	timeSpan: { from: Instant; to: Instant };
+	/** Extra latitude circles this activity draws; the Equator is always drawn. */
+	latitudeCircles?: readonly LatitudeCircleSpec[];
 	cameraPresets: readonly CameraPreset[];
 	settings: readonly SettingSpec[];
 	guide: readonly GuideStep[];

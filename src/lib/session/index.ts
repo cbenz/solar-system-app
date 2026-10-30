@@ -17,6 +17,7 @@ export { FIRST_POV_ID, MAX_OBSERVERS, placementTargetId } from './handlers/place
 export { pickLatitude, type LatitudePick, type PickedLatitude } from './pick';
 export { POLAR_CIRCLE_DEG, placeName } from './places';
 export { markersFor } from './scene-markers';
+export { EQUATOR_CIRCLE_ID, circlesFor } from './circles';
 export {
 	DEFAULT_CAMERA,
 	cameraForPreset,
@@ -114,6 +115,7 @@ export type {
 	SandboxView,
 	SceneMarker,
 	SceneBody,
+	SceneCircle,
 	SceneMoon,
 	SceneObserver,
 	SceneSnapshot,
