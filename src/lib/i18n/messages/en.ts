@@ -51,6 +51,27 @@ export const en = {
 	'activity.day-and-night.camera.close': 'Close up',
 	'activity.day-and-night.setting.rotation': 'Rotation speed',
 
+	'activity.latitudes.camera.overview': 'The whole Earth',
+	'activity.latitudes.camera.sunlit': 'From the Sun side',
+	'activity.latitudes.camera.abovePole': 'From above the pole',
+	'activity.latitudes.setting.playback': 'Year speed',
+	'activity.latitudes.guide.equator':
+		'Three places on the same planet. At the Equator every day lasts twelve hours.',
+	'activity.latitudes.guide.june':
+		'In June the Sun never sets at the Arctic Circle, and it stands straight overhead at the Tropic of Cancer.',
+	'activity.latitudes.guide.december':
+		'In December the Arctic Circle has no day at all, while the Equator keeps its twelve hours.',
+	'activity.latitudes.guide.above':
+		'From above the pole, follow the line between day and night through the year.',
+	'activity.latitudes.mission.zenith.prompt':
+		'Find the day the Sun stands straight overhead at the Tropic of Cancer.',
+	'activity.latitudes.mission.zenith.prediction': 'Guess first: which month?',
+	'activity.latitudes.mission.zenith.close': 'A few days away. Keep looking.',
+	'activity.latitudes.mission.zenith.right':
+		'That is the June solstice: the only day the Sun reaches the zenith there.',
+
+	'pov.sunHeight': 'Sun height: {height}°',
+
 	'scale.distancesNotToScale': 'The distances between them are shortened so you can see everything.',
 	'scale.sizesNotToScale': 'The Earth, the Moon and the Sun are drawn bigger than they really are.'
 } as const;
