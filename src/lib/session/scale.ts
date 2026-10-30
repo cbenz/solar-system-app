@@ -26,12 +26,22 @@
  * |-------|-------------------------------:|---------:|---------:|
  * | Sun   | 0 (it is the origin)            | 0        | 1        |
  * | Earth | 1 AU                            | 0.0561 AU| 0.0561   |
- * | Moon  | 0.00257 AU                      | 0.00257  | 1        |
+ * | Moon  | 0.00257 AU                      | 0.025 AU | 9.73     |
  *
  * So the Earth is drawn 5.6 Earth radii from the Sun instead of 23 500: short
  * enough that both fit a phone screen, long enough that the orbit still reads as
  * an orbit. Turning the switch on multiplies by 1 instead, which is 17.8 times
  * further — far enough that the Sun leaves the frame, which is the point.
+ *
+ * **The Moon's orbit gets a second, documented distortion** (ticket 14). The
+ * Moon's true distance is 0.26 drawn Earth radii, i.e. inside the enlarged
+ * globe, so the default view would hide the Moon and its orbit entirely. The
+ * readable default therefore draws the Moon's orbit at 2.5 drawn Earth radii:
+ * outside the globe, close enough to the Earth to read as *its* orbit, and
+ * stated in the scene's notice like the other distortions. That is the `9.73`
+ * in the table above. With true distance on, the factor is 1 like everything
+ * else and the Moon is back inside the drawn Earth — which is what true
+ * distance means here.
  *
  * The factor applies to a body's position **relative to its primary** (see
  * `primaryOf`): compressing heliocentric positions instead would squeeze the
@@ -71,6 +81,18 @@ export const DISTANCE_FLOOR_AU = 0.01;
 
 /** The Sun's drawn radius, in AU, when the readable default is active. */
 export const SUN_RADIUS_CAP_AU = 2 * DRAWN_EARTH_RADIUS_AU;
+
+/**
+ * The Moon's orbit, in drawn Earth radii, in the readable default.
+ *
+ * Two and a half is the smallest round number that clears the drawn globe
+ * (radius 1) plus the drawn Moon (radius 0.27) with a gap, and it keeps the
+ * whole orbit inside the closest camera preset. See the header.
+ */
+export const MOON_ORBIT_DRAWN_RADII = 2.5;
+
+/** The Moon's orbit, in AU, in the readable default. */
+export const MOON_ORBIT_DRAWN_AU = MOON_ORBIT_DRAWN_RADII * DRAWN_EARTH_RADIUS_AU;
 
 /** One enlargement for every body but the Sun; see the header for the numbers. */
 const ENLARGEMENT = DRAWN_EARTH_RADIUS_AU / (TRUE_RADIUS_KM.earth / AU_KM);
@@ -129,7 +151,9 @@ export function bodyScale(
 	body: BodyId
 ): ScaleFactors {
 	const meanDistance = MEAN_PRIMARY_DISTANCE_AU[body];
-	const drawnDistance = compressedDistanceAu(meanDistance);
+	// The Moon's orbit is drawn at a readable radius, not at its true one: at its
+	// true distance it would be inside the enlarged Earth (see the header).
+	const drawnDistance = body === 'moon' ? MOON_ORBIT_DRAWN_AU : compressedDistanceAu(meanDistance);
 	const radius = trueRadiusAu(body);
 
 	return {

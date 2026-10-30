@@ -10,6 +10,7 @@ import {
 	type SceneBody,
 	type SceneCircle,
 	type SceneMarker,
+	type SceneOrbitPath,
 	type SceneSnapshot,
 	type Vec3
 } from '$lib/session';
@@ -171,6 +172,18 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 	rayLines.visible = false;
 	scene.add(rayLines);
 
+	// Orbit rings the activity asks for (ticket 14): the Moon's inclined orbit,
+	// the ecliptic reference ring, and the Earth's orbit. The session samples them
+	// with their own distance factors, so the renderer only plots points.
+	const orbitLines = new Map<string, THREE.LineLoop>();
+	const orbitMaterials = new Set<THREE.LineBasicMaterial>();
+
+	function orbitStyle(kind: SceneOrbitPath['kind']): { colour: number; opacity: number } {
+		if (kind === 'moon-orbit') return { colour: 0xbfc3c9, opacity: 0.8 };
+		if (kind === 'ecliptic') return { colour: 0x7dd3fc, opacity: 0.35 };
+		return { colour: 0xf5c86b, opacity: 0.25 };
+	}
+
 	// Latitude circles: line loops on the sphere, slightly outside it so they do
 	// not z-fight with the surface. The snapshot says which ones a session draws
 	// (the Equator always; ticket 11's activity adds the Tropics and Polar
@@ -311,6 +324,64 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 		return trueRadiusAu(body.id) * body.radiusFactor * UNITS_PER_AU;
 	}
 
+	/**
+	 * A body's drawn offset from the Earth, using **that body's** distance factor.
+	 * The Moon's orbit is drawn at a readable radius (`scale.ts`), so it cannot
+	 * ride on the Earth's factor.
+	 */
+	function drawnOffsetOf(body: SceneBody, earthPosition: Vec3): THREE.Vector3 {
+		return new THREE.Vector3(
+			body.position.x - earthPosition.x,
+			body.position.y - earthPosition.y,
+			body.position.z - earthPosition.z
+		).multiplyScalar(body.distanceFactor * UNITS_PER_AU);
+	}
+
+	/**
+	 * Orbit rings: the Moon's inclined orbit, the ecliptic reference ring, and the
+	 * Earth's own orbit. The session samples them; this only plots them.
+	 */
+	function syncOrbitPaths(paths: readonly SceneOrbitPath[]): void {
+		const present = new Set<string>();
+
+		for (const path of paths) {
+			present.add(path.id);
+			const scale = path.distanceFactor * UNITS_PER_AU;
+			const points = path.points.map(
+				(point) =>
+					new THREE.Vector3(point.x, point.y, point.z).multiplyScalar(scale)
+			);
+
+			let line = orbitLines.get(path.id);
+			if (line === undefined) {
+				const material = new THREE.LineBasicMaterial({
+					color: orbitStyle(path.kind).colour,
+					transparent: true,
+					opacity: orbitStyle(path.kind).opacity,
+					depthWrite: false
+				});
+				line = new THREE.LineLoop(new THREE.BufferGeometry(), material);
+				line.userData.kind = path.kind;
+				orbitLines.set(path.id, line);
+				orbitMaterials.add(material);
+				scene.add(line);
+			}
+
+			line.geometry.dispose();
+			line.geometry = new THREE.BufferGeometry().setFromPoints(points);
+		}
+
+		for (const [id, line] of orbitLines) {
+			if (present.has(id)) continue;
+			scene.remove(line);
+			line.geometry.dispose();
+			const material = line.material as THREE.LineBasicMaterial;
+			orbitMaterials.delete(material);
+			material.dispose();
+			orbitLines.delete(id);
+		}
+	}
+
 	/** Where a dot for this observer is drawn: its latitude, on the facing meridian. */
 	function observerPosition(observer: Observer): THREE.Vector3 {
 		const latitude = (observer.latitudeDeg * Math.PI) / 180;
@@ -362,11 +433,14 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 		syncCircles(snapshot.circles);
 		if (earthBody === undefined) return;
 
-		// The Earth is the origin of the drawn frame. Every other body is drawn at
-		// its true offset from the Earth, scaled by the Earth's distance factor:
-		// light comes from where the Sun really is, not from an axis.
+		// The Earth is the origin of the drawn frame. The Sun is drawn at its true
+		// offset from the Earth, scaled by the Earth's distance factor (that is the
+		// Earth–Sun distance being compressed); light comes from where the Sun
+		// really is, not from an axis.
 		const drawScale = earthBody.distanceFactor * UNITS_PER_AU;
 		lastDrawScale = drawScale;
+		drawScales.set('sun', drawScale);
+		drawScales.set('earth', drawScale);
 		const drawnOffset = (position: Vec3): THREE.Vector3 =>
 			new THREE.Vector3(
 				position.x - earthBody.position.x,
@@ -384,12 +458,20 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 			sun.scale.setScalar(drawnRadius(sunBody));
 		}
 
+		// The Moon carries its own distance factor (its orbit is drawn at a readable
+		// radius, see `scale.ts`), so its offset is scaled by that factor and not by
+		// the Earth's.
 		const moonBody = snapshot.bodies.find((body) => body.id === 'moon');
 		moon.visible = moonBody !== undefined;
 		if (moonBody !== undefined) {
-			moon.position.copy(drawnOffset(moonBody.position));
+			moon.position.copy(drawnOffsetOf(moonBody, earthBody.position));
 			moon.scale.setScalar(drawnRadius(moonBody));
+			drawScales.set('moon', moonBody.distanceFactor * UNITS_PER_AU);
 		}
+
+		// The orbit rings an activity asks for: drawn in the same frame, each with
+		// the factor its own body's orbit is drawn at.
+		syncOrbitPaths(snapshot.orbits);
 
 		// The seasons geometry: the drawn orbit and the parallel sunlight. The
 		// eccentricity is the session's decision (ADR-0004 rule 1); the renderer
@@ -622,8 +704,12 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 	// any resolution); the renderer only says where the dot is on screen.
 
 	let lastSnapshot: SceneSnapshot | null = null;
-	/** Drawn units per AU from the last snapshot, for a drag's conversion back. */
+	/**
+	 * Drawn units per AU, per body, from the last snapshot: a drag's conversion
+	 * back to a position uses the factor the body was actually drawn with.
+	 */
 	let lastDrawScale = 1;
+	const drawScales = new Map<BodyId, number>();
 
 	function emitLabels(): void {
 		const onLabelsChange = options.onLabelsChange;
@@ -716,7 +802,12 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 			hit.object.position.clone()
 		);
 
-		bodyDrag = { id: hit.id, object: hit.object, plane, scale: lastDrawScale };
+		bodyDrag = {
+			id: hit.id,
+			object: hit.object,
+			plane,
+			scale: drawScales.get(hit.id) ?? lastDrawScale
+		};
 		canvas.setPointerCapture(event.pointerId);
 		return true;
 	}
@@ -965,6 +1056,13 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 			scene.remove(orbitLine);
 			scene.remove(rayLines);
 			for (const line of trackLines.values()) scene.remove(line);
+			for (const line of orbitLines.values()) {
+				scene.remove(line);
+				line.geometry.dispose();
+			}
+			orbitLines.clear();
+			for (const material of orbitMaterials) material.dispose();
+			orbitMaterials.clear();
 			for (const dot of observerDots.values()) surface.remove(dot);
 			observerDots.clear();
 			for (const ring of markerRings.values()) scene.remove(ring);

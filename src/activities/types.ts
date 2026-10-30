@@ -75,6 +75,18 @@ export type LatitudeCircleSpec = {
 	latitudeDeg: number;
 };
 
+/**
+ * An orbit ring an activity asks the space view to draw.
+ *
+ * The activity names what to draw; the session owns the geometry, exactly as it
+ * does for latitude circles. `ecliptic` is the Earth's orbital plane made
+ * visible where the Moon's orbit lives — the reference the tilt is read against.
+ */
+export type OrbitPathSpec = {
+	id: string;
+	kind: 'moon-orbit' | 'ecliptic' | 'earth-orbit';
+};
+
 /** One scripted guide step. Ticket 08 drives the sequence; here it is data. */
 export type GuideStep = {
 	narration: MessageKey;
@@ -202,6 +214,8 @@ export type Activity = {
 	timeSpan: { from: Instant; to: Instant };
 	/** Extra latitude circles this activity draws; the Equator is always drawn. */
 	latitudeCircles?: readonly LatitudeCircleSpec[];
+	/** Orbit rings this activity draws; none are drawn by default. */
+	orbitPaths?: readonly OrbitPathSpec[];
 	cameraPresets: readonly CameraPreset[];
 	settings: readonly SettingSpec[];
 	guide: readonly GuideStep[];

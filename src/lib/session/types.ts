@@ -222,6 +222,13 @@ export type SceneBody = {
  * lit and which way the lit limb points. The POV panel draws this and nothing
  * else — no phase formulae in a component.
  */
+/** The eclipse as a POV draws it: what happens, and how far the light is dimmed. */
+export type SceneEclipse = {
+	kind: 'none' | 'partial' | 'total' | 'annular' | 'penumbral';
+	/** 0 in plain light, 1 in full shadow. The panel dims by this. */
+	darkening: number;
+};
+
 export type SceneMoon = {
 	altitudeDeg: number;
 	/** Azimuth measured clockwise from north (0 … 360), for the POV panel. */
@@ -236,6 +243,8 @@ export type SceneMoon = {
 	 * panel's +x (east) axis, counter-clockwise: the lit limb points that way.
 	 */
 	litLimbAngleDeg: number;
+	/** The Earth's shadow on the Moon: how red and dark it is drawn. */
+	eclipse: SceneEclipse | null;
 };
 
 export type SceneObserver = {
@@ -253,6 +262,8 @@ export type SceneObserver = {
 	moon: SceneMoon | null;
 	/** The gnomon's shadow for this POV: pure geometry, drawn on the ground plane. */
 	shadow: ShadowGeometry;
+	/** What this observer sees of the Sun (ticket 14), `none` outside an eclipse. */
+	eclipse: SceneEclipse;
 };
 
 /**
@@ -296,11 +307,27 @@ export type SceneMission = {
 	feedback: MessageKey | null;
 };
 
+/**
+ * One orbit ring the space view draws. The Earth's orbit and the Moon's lie in
+ * planes 5.145° apart; drawing both is what makes the inclination visible
+ * instead of asserted (ticket 14).
+ */
+export type SceneOrbitPath = {
+	id: string;
+	kind: 'moon-orbit' | 'ecliptic' | 'earth-orbit';
+	/** Closed loop of samples **relative to the Earth**, in true AU. */
+	points: Vec3[];
+	/** Multiplies each sample's offset from the Earth (`scale.ts`, ADR-0003). */
+	distanceFactor: number;
+};
+
 export type SceneSnapshot = {
 	bodies: SceneBody[];
 	observers: SceneObserver[];
 	markers: SceneMarker[];
 	circles: SceneCircle[];
+	/** Orbit rings this scene draws; empty unless the open activity asks for some. */
+	orbits: SceneOrbitPath[];
 	camera: CameraState;
 	mission: SceneMission | null;
 	/** The seasons activity's rays, drawn orbit and distance readout; null elsewhere. */

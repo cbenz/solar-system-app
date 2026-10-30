@@ -12,10 +12,13 @@
 	import { createScene, type ObserverLabelPosition, type SceneHandle } from '$lib/scene/scene';
 	import {
 		applyEvent,
+		bodyDragEnabled,
 		bodyPositionAu,
 		buildScene,
 		clampCamera,
 		createInitialState,
+		MOON_ORBIT_SETTING_KEY,
+		moonOffsetForPosition,
 		placementTargetId,
 		type BodyId,
 		type SceneSnapshot,
@@ -63,6 +66,10 @@
 	 * A dragged body arrives relative to the Earth, the drawn frame's origin. The
 	 * Sun's event wants an absolute sandbox position, so the Earth is added back;
 	 * a dropped moon already speaks relative to its primary.
+	 *
+	 * In an activity that lets the child place the Moon, a Moon drag is not a drop:
+	 * it is a position along the Moon's orbit, which the session turns into the
+	 * placement setting. Nothing snaps it to an alignment.
 	 */
 	function dropBody(bodyId: BodyId, position: Vec3): void {
 		if (bodyId === 'sun') {
@@ -72,6 +79,14 @@
 				bodyId: 'sun',
 				position: { x: earth.x + position.x, y: earth.y + position.y, z: earth.z + position.z }
 			});
+			return;
+		}
+
+		if (bodyId === 'moon' && session.mode === 'activity') {
+			const offset = moonOffsetForPosition(session.instant, position);
+			if (offset !== null) {
+				dispatch({ type: 'set-setting', key: MOON_ORBIT_SETTING_KEY, value: offset });
+			}
 			return;
 		}
 
@@ -87,7 +102,7 @@
 			onCameraChange: (camera) => dispatch({ type: 'set-camera', camera }),
 			onOpenActivity: (activityId) => dispatch({ type: 'open-activity', activityId }),
 			onPlacement: placeObserver,
-			canDragBodies: () => session.mode === 'sandbox',
+			canDragBodies: () => bodyDragEnabled(session),
 			onBodyDrop: dropBody,
 			onLabelsChange: (labels) => {
 				labelPositions = Object.fromEntries(labels.map((label) => [label.id, label]));

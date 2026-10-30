@@ -168,6 +168,13 @@
 		if (moon !== null && moon.altitudeDeg > 0 && entry.visibleBodies.includes('moon')) {
 			drawMoon(context, moon);
 		}
+
+		// An eclipse dims the panel by the session's number: totality is darker than
+		// partiality, and plain sunlight leaves the panel alone (ticket 14).
+		if (entry.eclipse.darkening > 0) {
+			context.fillStyle = `rgba(2, 3, 8, ${Math.min(0.92, 0.9 * entry.eclipse.darkening)})`;
+			context.fillRect(0, 0, width, height);
+		}
 	}
 
 	/**
@@ -201,6 +208,14 @@
 		context.lineWidth = 1;
 		context.stroke();
 
+		// The Earth's shadow reddens and darkens the lit disc. `moon.eclipse` is the
+		// session's own number; nothing here decides what phase or eclipse it is.
+		const shadowed = 1 - 0.85 * (moon.eclipse?.darkening ?? 0);
+		const litColour =
+			moon.eclipse?.kind === 'total'
+				? `rgba(140, 60, 34, ${0.9 * shadowed + 0.08})`
+				: `rgba(238, 241, 247, ${shadowed})`;
+
 		context.beginPath();
 		context.arc(0, 0, discRadius, -Math.PI / 2, Math.PI / 2);
 		context.save();
@@ -208,7 +223,7 @@
 		context.arc(0, 0, discRadius, Math.PI / 2, -Math.PI / 2);
 		context.restore();
 		context.closePath();
-		context.fillStyle = '#eef1f7';
+		context.fillStyle = litColour;
 		context.fill();
 
 		context.restore();

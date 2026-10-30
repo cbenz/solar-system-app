@@ -28,7 +28,8 @@ export const OBLIQUITY_DEG = 23.44;
 const SUN_MEAN_DISTANCE_AU = 1.000001018;
 const MOON_MEAN_DISTANCE_KM = 384_400;
 const MOON_ECCENTRICITY = 0.0549006;
-const MOON_INCLINATION_DEG = 5.1453964;
+/** The Moon's orbital inclination to the ecliptic, in degrees (ASTRONOMY.md §1.3). */
+export const MOON_INCLINATION_DEG = 5.1453964;
 const EARTH_SIDEREAL_YEAR_DAYS = 365.256363;
 
 const DEG = Math.PI / 180;
@@ -192,6 +193,27 @@ export function greenwichSiderealTimeDeg(instant: Instant): number {
 }
 
 /**
+ * The Moon's mean longitude of the ascending node `Ω`, in degrees, regressing
+ * 19.34° per year (ASTRONOMY.md §1.3). It is the node line every eclipse lives
+ * on, so it is exported rather than recomputed by the eclipse module.
+ */
+export function moonAscendingNodeDeg(instant: Instant): number {
+	const jd = julianDay(instant);
+	const centuries = (jd - 2451545.0) / 36525;
+	const t2 = centuries ** 2;
+	const t3 = centuries ** 3;
+	const t4 = centuries ** 4;
+
+	return normalizeDeg(
+		125.0445479 -
+			1934.1362891 * centuries +
+			0.0020754 * t2 +
+			t3 / 467441 -
+			t4 / 60616000
+	);
+}
+
+/**
  * The Moon's geocentric position, in AU in the ecliptic frame.
  *
  * Keplerian ellipse from Meeus' mean elements, plus the leading periodic terms
@@ -225,12 +247,7 @@ export function moonGeocentricPositionAu(instant: Instant): Vec3 {
 		0.0036539 * t2 -
 		t3 / 3526000 +
 		t4 / 863310000;
-	const ascendingNode =
-		125.0445479 -
-		1934.1362891 * centuries +
-		0.0020754 * t2 +
-		t3 / 467441 -
-		t4 / 60616000;
+	const ascendingNode = moonAscendingNodeDeg(instant);
 
 	const argumentOfPerigee = meanLongitude - ascendingNode - moonMeanAnomaly;
 
@@ -246,7 +263,6 @@ export function moonGeocentricPositionAu(instant: Instant): Vec3 {
 
 	// Rotate to the ecliptic: λ and β from the argument of latitude u = ω + ν.
 	const abbreviationRad = argumentOfPerigee * DEG + trueAnomalyRad;
-	const nodeRad = ascendingNode * DEG;
 	const inclinationRad = MOON_INCLINATION_DEG * DEG;
 	const longitudeBeforeTerms = normalizeDeg(
 		ascendingNode +

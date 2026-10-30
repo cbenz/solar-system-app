@@ -158,6 +158,42 @@ export {
 } from './visibility';
 export type { VisibilityInput } from './visibility';
 export {
+	EARTH_RADIUS_KM,
+	MOON_ORBIT_SETTING_KEY,
+	ORBIT_PATH_SAMPLES,
+	SUN_RADIUS_KM,
+	angleBetweenDeg,
+	angularRadiusDeg,
+	bodyDragEnabled,
+	earthShadowDeg,
+	eclipticPathAu,
+	lunarEclipse,
+	lunarEclipseFor,
+	moonArgumentDeg,
+	moonGeocentricAtOffsetAu,
+	moonOffsetForPosition,
+	moonOrbitFrame,
+	moonOrbitOffsetDeg,
+	moonOrbitPathAu,
+	moonOrbitPointAu,
+	overlapFraction,
+	pathInclinationDeg,
+	placedMoonGeocentricAu,
+	placedMoonHeliocentricAu,
+	rotateAboutAxis,
+	solarEclipse,
+	withSolarEclipse
+} from './eclipse';
+export type {
+	EclipseView,
+	LunarEclipse,
+	LunarEclipseKind,
+	MoonOrbitFrame,
+	SolarEclipse,
+	SolarEclipseKind
+} from './eclipse';
+export { EARTH_ORBIT_SAMPLES, orbitPathsFor } from './orbit-paths';
+export {
 	advanceInstant,
 	clampInstant,
 	hasReachedEnd,
@@ -175,9 +211,11 @@ export type { SnapKind, SnapPoint } from './snap';
 export { snapPointsFor } from './snap-points';
 export {
 	AU_KM,
+	MOON_INCLINATION_DEG,
 	OBLIQUITY_DEG,
 	earthHeliocentricPositionAu,
 	earthSunDistanceAu,
+	moonAscendingNodeDeg,
 	moonGeocentricPositionAu,
 	moonHeliocentricPositionAu,
 	solarDeclinationDeg,
@@ -199,6 +237,8 @@ export {
 	distortionNotice,
 	DRAWN_EARTH_RADIUS_AU,
 	enlargedRadiusAu,
+	MOON_ORBIT_DRAWN_AU,
+	MOON_ORBIT_DRAWN_RADII,
 	primaryOf,
 	SUN_RADIUS_CAP_AU,
 	trueRadiusAu
@@ -220,8 +260,10 @@ export type {
 	SceneMarker,
 	SceneMission,
 	SceneCircle,
+	SceneEclipse,
 	SceneMoon,
 	SceneObserver,
+	SceneOrbitPath,
 	SceneSnapshot,
 	SessionEvent,
 	SessionMode,

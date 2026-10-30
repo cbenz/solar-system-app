@@ -84,6 +84,20 @@ session owns the phases.
   can still see what the scene is doing. Missions without one render as before.
 - Every string is a `MessageKey`; add both locales.
 
+## Drawing orbits and placing a body
+
+Two optional declarations let an activity show geometry the sandbox does not:
+
+- `orbitPaths` names orbit rings the space view draws — `moon-orbit`,
+  `ecliptic` (the Earth's orbital plane, drawn where the Moon's orbit lives) and
+  `earth-orbit`. The activity names what to draw; `src/lib/session/orbit-paths.ts`
+  owns the samples and each ring's distance factor.
+- Declaring the number setting `moonOrbitOffsetDeg`
+  (`MOON_ORBIT_SETTING_KEY`) is what lets the child place the Moon: the session
+  slides it along its inclined orbit by that offset (zero is the real Moon), and
+  the space view lets the Moon be dragged. A drag becomes a `set-setting`; it is
+  never snapped to an alignment.
+
 ## What the session does with it
 
 `open-activity` saves the sandbox view, narrows the subsystem, takes the

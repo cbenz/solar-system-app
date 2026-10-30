@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { applyEvent, createInitialState } from './index';
-import { bodyScale, distortionNotice, DRAWN_EARTH_RADIUS_AU, trueRadiusAu } from './scale';
+import { bodyScale, distortionNotice, DRAWN_EARTH_RADIUS_AU, MOON_ORBIT_DRAWN_AU, MOON_ORBIT_DRAWN_RADII, trueRadiusAu } from './scale';
 import type { BodyId, SessionState } from './types';
 
 const BODIES: readonly BodyId[] = ['sun', 'earth', 'moon'];
@@ -58,7 +58,10 @@ describe('the scale module', () => {
 			const readable = bodyScale(false, false, body);
 
 			expect(readable.distanceFactor, body).toBeGreaterThan(0);
-			expect(readable.distanceFactor, body).toBeLessThanOrEqual(1);
+			// Every body but the Moon is only ever compressed. The Moon's orbit is
+			// *stretched* to a readable radius, because its true one is inside the
+			// enlarged globe (ticket 14; see the module header).
+			if (body !== 'moon') expect(readable.distanceFactor, body).toBeLessThanOrEqual(1);
 			expect(readable.radiusFactor, body).toBeGreaterThan(1);
 		}
 	});
@@ -67,12 +70,23 @@ describe('the scale module', () => {
 		const earth = bodyScale(false, false, 'earth');
 		const moon = bodyScale(false, false, 'moon');
 
-		// The Moon's orbit is below the floor, so it is drawn true; the Earth is
-		// not. Far away is squeezed harder than close up (ADR-0003).
-		expect(moon.distanceFactor).toBe(1);
+		// The Earth is compressed; the Moon's orbit is drawn at a readable radius
+		// instead of its true one, which is inside the enlarged Earth.
+		expect(moon.distanceFactor).toBeGreaterThan(1);
 		expect(earth.distanceFactor).toBeLessThan(moon.distanceFactor);
 		// The Sun is the origin: there is no distance to compress.
 		expect(bodyScale(false, false, 'sun').distanceFactor).toBe(1);
+	});
+
+	it('draws the Moon\'s orbit outside the globe, and true when true distance is on', () => {
+		const readable = bodyScale(false, false, 'moon');
+		// Mean lunar distance, 384 400 km, drawn at 2.5 Earth radii.
+		const drawnAu = (384_400 / 149_597_870.7) * readable.distanceFactor;
+		expect(drawnAu).toBeCloseTo(MOON_ORBIT_DRAWN_AU, 12);
+		expect(drawnAu / DRAWN_EARTH_RADIUS_AU).toBeCloseTo(MOON_ORBIT_DRAWN_RADII, 12);
+
+		// True distance is honest, even when it hides the Moon inside the globe.
+		expect(bodyScale(true, false, 'moon').distanceFactor).toBe(1);
 	});
 
 	it('keeps the Earth and the Moon in proportion, and caps the Sun', () => {

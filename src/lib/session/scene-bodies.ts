@@ -13,15 +13,13 @@
  * sandbox-only for the same reason.
  */
 
-import {
-	earthHeliocentricPositionAu,
-	moonHeliocentricPositionAu
-} from './ephemeris';
+import { earthHeliocentricPositionAu } from './ephemeris';
 import {
 	bodyPositionAu,
 	escapedTrack,
 	hasEscaped
 } from './sandbox';
+import { placedMoonHeliocentricAu } from './eclipse';
 import { bodyScale } from './scale';
 import type { BodyId, SessionState, Vec3 } from './types';
 
@@ -62,6 +60,19 @@ function sandboxPosition(state: SessionState, id: BodyId): Vec3 {
 	return bodyPositionAu(state, id, state.instant);
 }
 
+/**
+ * The Moon's heliocentric position for this session.
+ *
+ * In the sandbox an edited orbit wins, as for every body. In an activity the
+ * ephemeris is the only source — except for the one thing an activity may place:
+ * the Moon along its own orbit (ticket 14). With no placement declared the
+ * result is the ephemeris Moon, unchanged.
+ */
+function moonPosition(state: SessionState): Vec3 {
+	if (state.mode === 'sandbox') return sandboxPosition(state, 'moon');
+	return placedMoonHeliocentricAu(state, state.instant);
+}
+
 export const BODY_CONTRIBUTORS: readonly BodyContributor[] = [
 	(state) =>
 		inSubsystem(state, 'sun')
@@ -83,12 +94,6 @@ export const BODY_CONTRIBUTORS: readonly BodyContributor[] = [
 			: null,
 	(state) =>
 		inSubsystem(state, 'moon')
-			? drawnBody(
-					state,
-					'moon',
-					state.mode === 'sandbox'
-						? sandboxPosition(state, 'moon')
-						: moonHeliocentricPositionAu(state.instant)
-				)
+			? drawnBody(state, 'moon', moonPosition(state))
 			: null
 ];

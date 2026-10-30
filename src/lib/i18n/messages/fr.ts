@@ -219,6 +219,38 @@ export const fr: Record<MessageKey, string> = {
 	'activity.seasons.scene.notRealOrbit':
 		"Cette orbite est exagérée exprès. La vraie orbite est presque un cercle, et ce n'est pas elle qui fait les saisons.",
 
+	'activity.eclipses.camera.overview': 'Toute la scène',
+	'activity.eclipses.camera.aboveEcliptic': 'Au-dessus des orbites',
+	'activity.eclipses.camera.alongTheLine': 'Le long de l’axe Soleil–Terre',
+	'activity.eclipses.setting.moonPlacement': 'Placer la Lune',
+	'activity.eclipses.guide.alignment':
+		'Fais glisser la Lune le long de son anneau gris. Un seul endroit de cet anneau la place devant le Soleil.',
+	'activity.eclipses.guide.threeViews':
+		'Regarde les trois vues. Le même instant, trois lieux : un dans l’ombre complète, un dans la pénombre, un en plein soleil.',
+	'activity.eclipses.guide.mostMonths':
+		'Un mois plus tard, la Lune s’aligne de nouveau, et rien ne se passe : elle passe au-dessus du Soleil, en dehors de son anneau.',
+	'activity.eclipses.guide.earthShadow':
+		'Maintenant dans l’autre sens. La Lune glisse dans l’ombre de la Terre, et tous ceux qui sont du côté nuit voient la même chose.',
+	'activity.eclipses.guide.earthShadowTotal':
+		'Entièrement dans l’ombre, la Lune pâlit et rougit. Cette fois, rien ne cache le Soleil : c’est la Terre qui fait de l’ombre.',
+
+	'activity.eclipses.mission.lineUp.label': 'Aligne-les',
+	'activity.eclipses.mission.lineUp.brief':
+		'Place la Lune pour qu’elle cache le Soleil au premier observateur.',
+	'activity.eclipses.mission.lineUp.prediction':
+		'Mets la Lune là où tu penses qu’elle doit être, puis valide ton idée.',
+	'activity.eclipses.mission.lineUp.claim.moonInFront':
+		'La Lune doit être entre la Terre et le Soleil.',
+	'activity.eclipses.mission.lineUp.claim.earthInFront':
+		'La Terre doit être entre la Lune et le Soleil.',
+	'activity.eclipses.mission.lineUp.observe':
+		'Regarde la première vue : le disque de la Lune recouvre celui du Soleil.',
+	'activity.eclipses.mission.lineUp.explain':
+		'Une éclipse de Soleil, c’est la Lune qui passe devant le Soleil. Il faut le bon mois en plus du bon endroit sur l’anneau.',
+	'activity.eclipses.mission.lineUp.close':
+		'Presque. Fais glisser la Lune un peu plus loin sur son anneau.',
+	'activity.eclipses.mission.lineUp.right': 'Voilà : le Soleil est recouvert.',
+
 	'pov.sunHeight': 'Hauteur du Soleil : {height}°',
 
 	'scale.distancesNotToScale': 'Les distances entre eux sont raccourcies pour que tu puisses tout voir.',
