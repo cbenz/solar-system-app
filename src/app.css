@@ -1,3 +1,14 @@
+:root {
+	/* Height of the fixed timeline, so the POV dock can sit flush above it. */
+	--timeline-height: 8rem;
+}
+
+@media (orientation: landscape) and (max-height: 40rem) {
+	:root {
+		--timeline-height: 6rem;
+	}
+}
+
 html,
 body {
 	margin: 0;

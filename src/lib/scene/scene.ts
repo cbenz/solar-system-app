@@ -50,6 +50,22 @@ export function createScene(host: HTMLElement): SceneHandle {
 	earth.rotation.order = 'YXZ';
 	scene.add(earth);
 
+	// Observer dots. The snapshot carries each observer's surface normal in the
+	// ecliptic frame — the same normal that decides sunlight — so a dot crosses
+	// the terminator at exactly the instant its POV goes dark.
+	const observerGeometry = new THREE.SphereGeometry(EARTH_RADIUS * 0.025, 16, 12);
+	const observerMaterials = new Map<string, THREE.MeshBasicMaterial>();
+	const observerDots = new Map<string, THREE.Mesh>();
+
+	function observerMaterial(colour: string): THREE.MeshBasicMaterial {
+		const cached = observerMaterials.get(colour);
+		if (cached !== undefined) return cached;
+
+		const material = new THREE.MeshBasicMaterial({ color: colour });
+		observerMaterials.set(colour, material);
+		return material;
+	}
+
 	// Stand-in Sun mesh, with its light coming from the Sun's real position. The
 	// session snapshot carries where the Earth is; here the Earth is the origin,
 	// so the Sun's direction is the opposite of the Earth's heliocentric vector.
@@ -89,6 +105,33 @@ export function createScene(host: HTMLElement): SceneHandle {
 		const { x, y, z } = earthBody.position;
 		const length = Math.hypot(x, y, z) || 1;
 		sunlight.position.set((-x / length) * 10, (-y / length) * 10, (-z / length) * 10);
+
+		const present = new Set<string>();
+		for (const entry of snapshot.observers) {
+			const { id, colour } = entry.observer;
+			present.add(id);
+
+			let dot = observerDots.get(id);
+			if (dot === undefined) {
+				dot = new THREE.Mesh(observerGeometry, observerMaterial(colour));
+				observerDots.set(id, dot);
+				scene.add(dot);
+			}
+
+			dot.material = observerMaterial(colour);
+			const normal = entry.surfaceNormal;
+			dot.position.set(
+				normal.x * EARTH_RADIUS * 1.01,
+				normal.y * EARTH_RADIUS * 1.01,
+				normal.z * EARTH_RADIUS * 1.01
+			);
+		}
+
+		for (const [id, dot] of observerDots) {
+			if (present.has(id)) continue;
+			scene.remove(dot);
+			observerDots.delete(id);
+		}
 	}
 
 	// --- Gestures -----------------------------------------------------------
@@ -226,9 +269,14 @@ export function createScene(host: HTMLElement): SceneHandle {
 
 			scene.remove(earth);
 			scene.remove(stars);
+			for (const dot of observerDots.values()) scene.remove(dot);
+			observerDots.clear();
 			earthGeometry.dispose();
 			earthMaterial.dispose();
 			earthTexture.dispose();
+			observerGeometry.dispose();
+			for (const material of observerMaterials.values()) material.dispose();
+			observerMaterials.clear();
 
 			const starMaterial = stars.material;
 			if (Array.isArray(starMaterial)) {
