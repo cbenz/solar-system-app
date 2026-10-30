@@ -30,7 +30,11 @@ export const en = {
 	'term.space-view': 'Space view',
 	'term.subsystem': 'Subsystem',
 	'term.true-distance': 'True distance',
-	'term.visibility-limit': 'Visibility limit'
+	'term.true-size': 'True size',
+	'term.visibility-limit': 'Visibility limit',
+
+	'scale.distancesNotToScale': 'The distances between them are shortened so you can see everything.',
+	'scale.sizesNotToScale': 'The Earth, the Moon and the Sun are drawn bigger than they really are.'
 } as const;
 
 export type MessageKey = keyof typeof en;
