@@ -77,7 +77,7 @@
 <div class="scene" bind:this={host}></div>
 <ObserverLabels entries={snapshot.observers} positions={labelPositions} locale={session.locale} />
 <ActivityToolbar session={session} {dispatch} />
-<PovDock observers={snapshot.observers} />
+<PovDock observers={snapshot.observers} locale={session.locale} />
 <ScaleBanner session={session} {dispatch} />
 <Timeline session={session} {dispatch} />
 <LanguageSwitch locale={session.locale} onSelect={(locale) => dispatch({ type: 'set-locale', locale })} />

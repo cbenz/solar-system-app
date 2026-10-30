@@ -16,9 +16,11 @@
 	 * Everything the POV draws is either in `visibleBodies` or decorative.
 	 */
 	import { onMount } from 'svelte';
-	import { skyToScreen, starField, NIGHT_SKY_SEED, type SceneObserver } from '$lib/session';
+	import { translate } from '$lib/i18n/translate';
+	import type { Locale } from '$lib/i18n/locale';
+	import { placeName, skyToScreen, starField, NIGHT_SKY_SEED, type SceneObserver } from '$lib/session';
 
-	let { entry }: { entry: SceneObserver } = $props();
+	let { entry, locale }: { entry: SceneObserver; locale: Locale } = $props();
 
 	let canvas: HTMLCanvasElement;
 	let width = $state(0);
@@ -197,11 +199,16 @@
 
 <div class="pov" style:--observer-colour={entry.observer.colour}>
 	<canvas bind:this={canvas} aria-hidden="true"></canvas>
+	<span class="pov-label">{translate(locale, placeName(entry.observer.latitudeDeg))}</span>
+	<span class="sun-height">
+		{translate(locale, 'pov.sunHeight', { height: Math.round(entry.sunElevationDeg) })}
+	</span>
 </div>
 
 <style>
 	.pov {
 		box-sizing: border-box;
+		position: relative;
 		min-width: 0;
 		min-height: 0;
 		overflow: hidden;
@@ -213,5 +220,30 @@
 		display: block;
 		width: 100%;
 		height: 100%;
+	}
+
+	.pov-label,
+	.sun-height {
+		position: absolute;
+		left: 0.35rem;
+		max-width: calc(100% - 0.7rem);
+		color: #fff;
+		font-size: clamp(0.6rem, 2.2vw, 0.8rem);
+		font-weight: 600;
+		line-height: 1.2;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		text-shadow: 0 1px 2px #000;
+		pointer-events: none;
+	}
+
+	.pov-label {
+		top: 0.3rem;
+	}
+
+	.sun-height {
+		bottom: 0.3rem;
+		font-variant-numeric: tabular-nums;
 	}
 </style>
