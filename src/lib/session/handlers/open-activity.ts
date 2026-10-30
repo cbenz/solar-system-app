@@ -9,27 +9,11 @@
  */
 
 import { settingDefaults } from '../../../activities/settings';
-import type { PovSpec } from '../../../activities/types';
 import { cameraForPreset, clampCamera, currentActivity } from '../camera';
-import { nextObserverColour } from '../observer-colour';
+import { observersFromPovs } from '../povs';
 import { DEFAULT_SUBSYSTEM } from '../state';
 import { clampInstant, sandboxSpan } from '../time';
-import type { Observer, SessionEvent, SessionState } from '../types';
-
-function observersFromPovs(povs: readonly PovSpec[]): Observer[] {
-	const used: string[] = [];
-	return povs.map((pov) => {
-		const colour = nextObserverColour(used);
-		used.push(colour);
-		return {
-			id: pov.id,
-			bodyId: pov.bodyId,
-			latitudeDeg: pov.latitudeDeg,
-			...(pov.longitudeDeg === undefined ? {} : { longitudeDeg: pov.longitudeDeg }),
-			colour
-		};
-	});
-}
+import type { SessionEvent, SessionState } from '../types';
 
 export function handleOpenActivity(state: SessionState, event: SessionEvent): SessionState | null {
 	if (event.type === 'open-activity') {
@@ -89,6 +73,26 @@ export function handleOpenActivity(state: SessionState, event: SessionEvent): Se
 				phase: 'sandbox',
 				guideStep: null,
 				timeSpan,
+				subsystem: [...DEFAULT_SUBSYSTEM],
+				sandboxView: null
+			};
+		}
+
+		// Abandoning a guide mid-way keeps the scene where the last applied step
+		// left it: its instant, camera, tilt and POV set survive the way out. Only
+		// leaving an activity that never started its guide restores the sandbox
+		// view the child left behind.
+		if (state.phase === 'guide') {
+			return {
+				...state,
+				mode: 'sandbox',
+				activityId: null,
+				phase: 'sandbox',
+				guideStep: null,
+				// The guide's instant may sit outside the sandbox window; keep it
+				// where the last step put it unless that window cannot hold it.
+				instant: clampInstant(state.instant, saved.timeSpan),
+				timeSpan: saved.timeSpan,
 				subsystem: [...DEFAULT_SUBSYSTEM],
 				sandboxView: null
 			};

@@ -8,6 +8,7 @@
  */
 
 import { handleCamera } from './handlers/camera';
+import { handleGuide } from './handlers/guide';
 import { handleOpenActivity } from './handlers/open-activity';
 import { handlePlaceObserver } from './handlers/place-observer';
 import { handleSetSetting } from './handlers/set-setting';
@@ -23,6 +24,7 @@ export type SessionHandler = (state: SessionState, event: SessionEvent) => Sessi
 
 export const SESSION_HANDLERS: readonly SessionHandler[] = [
 	handleOpenActivity,
+	handleGuide,
 	handleScrubTo,
 	handlePlaceObserver,
 	handleSetSetting,
