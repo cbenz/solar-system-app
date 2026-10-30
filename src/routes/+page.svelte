@@ -28,6 +28,7 @@
 	import MissionPanel from '$lib/ui/MissionPanel.svelte';
 	import BodyPropertiesCard from '$lib/ui/BodyPropertiesCard.svelte';
 	import SandboxToolbar from '$lib/ui/SandboxToolbar.svelte';
+	import GuidePanel from '$lib/ui/GuidePanel.svelte';
 	import PovDock from '$lib/ui/PovDock.svelte';
 	import ScaleBanner from '$lib/ui/ScaleBanner.svelte';
 	import Timeline from '$lib/ui/Timeline.svelte';
@@ -109,6 +110,7 @@
 <MissionPanel mission={snapshot.mission} locale={session.locale} {dispatch} />
 <SandboxToolbar session={session} {dispatch} />
 <BodyPropertiesCard session={session} {dispatch} />
+<GuidePanel session={session} {dispatch} />
 <PovDock observers={snapshot.observers} />
 <ScaleBanner session={session} {dispatch} />
 <Timeline session={session} {dispatch} />

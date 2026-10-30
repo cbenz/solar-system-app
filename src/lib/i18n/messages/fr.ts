@@ -80,6 +80,11 @@ export const fr: Record<MessageKey, string> = {
 	'mission.explain': 'Ce qui s’est passé',
 	'mission.finish': 'Retour au bac à sable',
 
+	'guide.start': 'Commencer le guide',
+	'guide.next': 'Suivant',
+	'guide.mute': 'Couper la voix',
+	'guide.unmute': 'Remettre la voix',
+
 	'scale.distancesNotToScale': 'Les distances entre eux sont raccourcies pour que tu puisses tout voir.',
 	'scale.sizesNotToScale': "La Terre, la Lune et le Soleil sont dessinés plus grands qu'en vrai."
 };

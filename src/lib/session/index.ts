@@ -28,6 +28,8 @@ export { FIRST_POV_ID, MAX_OBSERVERS, placementTargetId } from './handlers/place
 export { pickLatitude, type LatitudePick, type PickedLatitude } from './pick';
 export { POLAR_CIRCLE_DEG, placeName } from './places';
 export { markersFor } from './scene-markers';
+export { TILT_SETTING_KEY, applyGuideStep, currentGuideStep, guideFor, nextGuideStep } from './guide';
+export { observersFromPovs } from './povs';
 export {
 	DEFAULT_CAMERA,
 	cameraForPreset,

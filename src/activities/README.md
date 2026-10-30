@@ -85,6 +85,25 @@ session owns the phases.
 
 `open-activity` saves the sandbox view, narrows the subsystem, takes the
 activity's span, POV set and setting defaults, and clamps the camera to the
-presets. `leave-activity` restores the saved sandbox exactly. The zoom clamp is
-`clampCamera` in `src/lib/session/camera.ts`; the renderer asks for a camera and
-uses the session's answer.
+presets. The zoom clamp is `clampCamera` in `src/lib/session/camera.ts`; the
+renderer asks for a camera and uses the session's answer.
+
+An activity opens in the sandbox phase. The first `next-guide-step` starts its
+guide and applies step 0; each later press advances one step and applies that
+step's camera preset, instant, `tilt` (only when the activity declares a `tilt`
+setting) and POV set. No step advances on a timer: a `waitForChild` step moves
+only when the event arrives. `leave-activity` while the guide is running keeps
+the scene the last applied step produced; leaving before the guide starts
+restores the saved sandbox view exactly.
+
+## Testing a guide
+
+Every activity in the registry gets a golden guide test for free:
+`src/activities/guide.test.ts` calls `describeGuideGolden` from
+`src/activities/guide-golden.ts` for each discovered module. A new activity
+needs no test edit — declare its guide and it is checked. An activity with an
+empty guide is reported as **skipped** rather than passing silently. The helper
+runs the guide from the first step to the last and asserts the ordered camera
+presets and instants, and that every narration key exists in both catalogues.
+`runGuideGolden(activity)` is exported for a one-off run when a test wants the
+applied steps back.
