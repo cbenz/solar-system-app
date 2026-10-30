@@ -69,6 +69,45 @@ export type CameraState = {
 };
 
 /**
+ * A body's orbit in the sandbox, as the state vector it was derived from. The
+ * element set is a consequence (`orbit.ts`), never stored: this vector plus the
+ * epoch is enough to place the body at any instant, in either direction.
+ *
+ * `position` and `velocity` are relative to the body's primary (the Sun for the
+ * Earth, the Earth for the Moon), in AU and AU/day.
+ */
+export type SandboxOrbit = {
+	position: Vec3;
+	velocity: Vec3;
+	epochInstant: Instant;
+};
+
+/** The pencil's undo: everything an edit may touch, captured when it starts. */
+export type SandboxEditBaseline = {
+	orbits: Partial<Record<BodyId, SandboxOrbit>>;
+	masses: Partial<Record<BodyId, number>>;
+	sunPositionAu: Vec3;
+};
+
+/**
+ * What the sandbox editing workbench holds, and nothing else: an activity never
+ * reads it. Empty by default, so the sandbox is the ephemeris until the child
+ * changes something.
+ */
+export type SandboxState = {
+	/** Only bodies the child has edited have an entry. */
+	orbits: Partial<Record<BodyId, SandboxOrbit>>;
+	/** Mass overrides in kilograms; absent means the published mass. */
+	masses: Partial<Record<BodyId, number>>;
+	/** The Sun is draggable in the sandbox (ADR-0004 rule 2); this is the position light comes from. */
+	sunPositionAu: Vec3;
+	/** The body whose properties card is open, or `null`. */
+	selectedBodyId: BodyId | null;
+	/** Non-null while the pencil is pressed; cancel restores it. */
+	editBaseline: SandboxEditBaseline | null;
+};
+
+/**
  * What the sandbox looked like when an activity opened. Leaving restores it
  * exactly, so closing an activity lands the child back where they were.
  */
@@ -103,6 +142,8 @@ export type SessionState = {
 	activities: readonly Activity[];
 	/** Set while an activity is open; `null` in the sandbox. */
 	sandboxView: SandboxView | null;
+	/** The sandbox workbench: edited orbits, masses and the Sun's position. */
+	sandbox: SandboxState;
 };
 
 /**
@@ -117,6 +158,13 @@ export type SceneBody = {
 	distanceFactor: number;
 	/** Multiplies the body's true radius when it is drawn. */
 	radiusFactor: number;
+	/** True when the sandbox orbit is unbound and never comes back. */
+	escaped: boolean;
+	/**
+	 * Heliocentric samples of an escaped body's future track, oldest first: the
+	 * renderer draws them so the departure is visible. Empty for every bound body.
+	 */
+	track: Vec3[];
 };
 
 /**
@@ -188,7 +236,21 @@ export type SessionEvent =
 	| { type: 'select-camera-preset'; presetId: string }
 	| { type: 'toggle-true-distance' }
 	| { type: 'toggle-true-size' }
-	| { type: 'set-locale'; locale: Locale };
+	| { type: 'set-locale'; locale: Locale }
+	| { type: 'select-body'; bodyId: BodyId | null }
+	| { type: 'begin-body-edit'; bodyId: BodyId }
+	| {
+			type: 'set-body-parameter';
+			bodyId: BodyId;
+			parameter: 'mass' | 'distance' | 'speed';
+			value: number;
+		}
+	| { type: 'confirm-body-edit' }
+	| { type: 'cancel-body-edit' }
+	/** Drag a body (never the Sun) to a new position; `velocity` null means dropped at rest. */
+	| { type: 'drop-body'; bodyId: BodyId; position: Vec3; velocity: Vec3 | null }
+	/** Move the Sun in the sandbox; refused inside an activity (ADR-0004 rule 2). */
+	| { type: 'move-body'; bodyId: BodyId; position: Vec3 };
 
 export type SessionResult = {
 	state: SessionState;
