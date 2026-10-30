@@ -15,6 +15,7 @@ import {
 	sunAzimuthDeg,
 	sunElevationDeg
 } from './observers';
+import { tiltDegFromSettings } from './seasons';
 import { MAX_SHADOW_LENGTH_FACTOR, shadowGeometry } from './shadow';
 import type { BodyId, SceneObserver, SessionState } from './types';
 
@@ -30,14 +31,20 @@ function visibleBodies(state: SessionState, observer: SceneObserver['observer'])
 }
 
 export const OBSERVER_CONTRIBUTORS: readonly ObserverContributor[] = [
-	(state) =>
-		state.observers.map((observer) => ({
+	(state) => {
+		// The activity's tilt reaches the same geometry the terminator uses. With
+		// no `tilt` setting this is the model's obliquity, so nothing changes.
+		const tiltDeg = tiltDegFromSettings(state.settings);
+
+		return state.observers.map((observer) => ({
 			observer,
 			sunElevationDeg:
-				observer.bodyId === 'earth' ? sunElevationDeg(observer, state.instant) : 0,
-			sunAzimuthDeg: observer.bodyId === 'earth' ? sunAzimuthDeg(observer, state.instant) : 0,
-			daylight: observer.bodyId === 'earth' ? isDaylight(observer, state.instant) : false,
-			surfaceNormal: observerNormal(observer, state.instant),
+				observer.bodyId === 'earth' ? sunElevationDeg(observer, state.instant, tiltDeg) : 0,
+			sunAzimuthDeg:
+				observer.bodyId === 'earth' ? sunAzimuthDeg(observer, state.instant, tiltDeg) : 0,
+			daylight:
+				observer.bodyId === 'earth' ? isDaylight(observer, state.instant, tiltDeg) : false,
+			surfaceNormal: observerNormal(observer, state.instant, tiltDeg),
 			visibleBodies: visibleBodies(state, observer),
 			// Filled by the night-sky pass in `scene.ts` (ticket 16).
 			visibilityLimit: false,
@@ -46,11 +53,12 @@ export const OBSERVER_CONTRIBUTORS: readonly ObserverContributor[] = [
 			// body with no ground casts no shadow, which the null azimuth says.
 			shadow:
 				observer.bodyId === 'earth'
-					? shadowGeometry(observer.latitudeDeg, state.instant)
+					? shadowGeometry(observer.latitudeDeg, state.instant, tiltDeg)
 					: {
 							sunElevationDeg: 0,
 							shadowLengthFactor: MAX_SHADOW_LENGTH_FACTOR,
 							shadowAzimuthDeg: null
 						}
-		}))
+		}));
+	}
 ];

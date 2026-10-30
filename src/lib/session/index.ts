@@ -29,6 +29,35 @@ export { pickLatitude, type LatitudePick, type PickedLatitude } from './pick';
 export { POLAR_CIRCLE_DEG, placeName } from './places';
 export { markersFor } from './scene-markers';
 export { TILT_SETTING_KEY, applyGuideStep, currentGuideStep, guideFor, nextGuideStep } from './guide';
+export { parallelSunRays, surfaceRaySpacingAu } from './sun-rays';
+export {
+	DRAWN_ORBIT_ECCENTRICITY_EXAGGERATED,
+	DRAWN_ORBIT_MAX_ECCENTRICITY,
+	drawnOrbitEccentricity,
+	drawnOrbitPoints,
+	seasonSceneFor
+} from './season-scene';
+export type { SeasonScene } from './season-scene';
+export type { SunRay, SunRayBundle, SunRayOptions } from './sun-rays';
+export {
+	EXAGGERATED_ORBIT_SETTING_KEY,
+	annualDistanceCurve,
+	aphelionInstant,
+	dayLengthHours,
+	dayLengthHoursForTilt,
+	daylightMinutesForTilt,
+	distanceInsolationRatio,
+	distanceToSunAu,
+	earthSunDistanceKm,
+	insolationContrast,
+	nearestCurveIndex,
+	noonElevationDeg,
+	perihelionInstant,
+	solarDeclinationForTiltDeg,
+	sunEclipticLongitudeDeg,
+	sunlightDirection,
+	tiltDegFromSettings
+} from './seasons';
 export { observersFromPovs } from './povs';
 export { EQUATOR_CIRCLE_ID, circlesFor } from './circles';
 export {

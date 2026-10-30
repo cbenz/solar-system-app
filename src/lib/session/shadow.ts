@@ -22,7 +22,7 @@
  * the component only strokes the polygon it returns.
  */
 
-import { normalizeDeg, solarDeclinationDeg } from './ephemeris';
+import { OBLIQUITY_DEG, normalizeDeg, solarDeclinationDeg } from './ephemeris';
 import { sunAzimuthDeg, sunElevationDeg } from './observers';
 import { horizonY, type SkyViewport } from './sky';
 import type { Instant, Observer } from './types';
@@ -60,14 +60,18 @@ export type ShadowGeometry = {
  * Latitude alone is enough: longitude is a convention that the observer's
  * rotation carries, and the shadow is about the observer's own ground.
  */
-export function shadowGeometry(latitudeDeg: number, instant: Instant): ShadowGeometry {
+export function shadowGeometry(
+	latitudeDeg: number,
+	instant: Instant,
+	tiltDeg: number = OBLIQUITY_DEG
+): ShadowGeometry {
 	const observer: Observer = {
 		id: 'gnomon',
 		bodyId: 'earth',
 		latitudeDeg,
 		colour: '#000000'
 	};
-	const elevation = sunElevationDeg(observer, instant);
+	const elevation = sunElevationDeg(observer, instant, tiltDeg);
 
 	if (elevation <= 0) {
 		return {
@@ -84,7 +88,7 @@ export function shadowGeometry(latitudeDeg: number, instant: Instant): ShadowGeo
 		shadowLengthFactor: factor,
 		// The shadow points away from the Sun, so a morning Sun in the east casts
 		// a shadow to the west.
-		shadowAzimuthDeg: normalizeDeg(sunAzimuthDeg(observer, instant) + 180)
+		shadowAzimuthDeg: normalizeDeg(sunAzimuthDeg(observer, instant, tiltDeg) + 180)
 	};
 }
 
@@ -93,8 +97,12 @@ export function shadowGeometry(latitudeDeg: number, instant: Instant): ShadowGeo
  * declination: `90° − |φ − δ|`. That maximum is local solar noon, which is why
  * it also gives the day's shortest shadow.
  */
-export function maxSunElevationDeg(latitudeDeg: number, instant: Instant): number {
-	return 90 - Math.abs(latitudeDeg - solarDeclinationDeg(instant));
+export function maxSunElevationDeg(
+	latitudeDeg: number,
+	instant: Instant,
+	tiltDeg: number = OBLIQUITY_DEG
+): number {
+	return 90 - Math.abs(latitudeDeg - solarDeclinationDeg(instant, tiltDeg));
 }
 
 /**
@@ -102,8 +110,12 @@ export function maxSunElevationDeg(latitudeDeg: number, instant: Instant): numbe
  * Infinite when the Sun does not rise, so a polar night is never mistaken for
  * a short shadow.
  */
-export function shortestShadowLengthFactor(latitudeDeg: number, instant: Instant): number {
-	const maxElevation = maxSunElevationDeg(latitudeDeg, instant);
+export function shortestShadowLengthFactor(
+	latitudeDeg: number,
+	instant: Instant,
+	tiltDeg: number = OBLIQUITY_DEG
+): number {
+	const maxElevation = maxSunElevationDeg(latitudeDeg, instant, tiltDeg);
 	if (maxElevation <= 0) return Number.POSITIVE_INFINITY;
 	return Math.min(1 / Math.tan(maxElevation * DEG), MAX_SHADOW_LENGTH_FACTOR);
 }
@@ -113,11 +125,15 @@ export function shortestShadowLengthFactor(latitudeDeg: number, instant: Instant
  * shortest: `0` at solar noon, positive everywhere else, `Infinity` when there
  * is no shadow to measure. The mission's continuous measure reads this.
  */
-export function shadowExcessAt(latitudeDeg: number, instant: Instant): number {
-	const geometry = shadowGeometry(latitudeDeg, instant);
+export function shadowExcessAt(
+	latitudeDeg: number,
+	instant: Instant,
+	tiltDeg: number = OBLIQUITY_DEG
+): number {
+	const geometry = shadowGeometry(latitudeDeg, instant, tiltDeg);
 	if (geometry.shadowAzimuthDeg === null) return Number.POSITIVE_INFINITY;
 
-	const shortest = shortestShadowLengthFactor(latitudeDeg, instant);
+	const shortest = shortestShadowLengthFactor(latitudeDeg, instant, tiltDeg);
 	if (!Number.isFinite(shortest)) return Number.POSITIVE_INFINITY;
 
 	return (geometry.shadowLengthFactor - shortest) / Math.max(shortest, SHORTEST_SHADOW_FLOOR);

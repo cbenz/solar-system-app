@@ -138,6 +138,44 @@ export const fr: Record<MessageKey, string> = {
 	'activity.latitudes.mission.zenith.right':
 		'C’est le solstice de juin : le seul jour où le Soleil atteint le zénith là-bas.',
 
+
+	'activity.seasons.camera.year': "Toute l'année",
+	'activity.seasons.camera.sunlit': 'Du côté du Soleil',
+	'activity.seasons.camera.abovePole': 'Au-dessus du pôle',
+	'activity.seasons.setting.tilt': "Inclinaison de l'axe",
+	'activity.seasons.setting.exaggeratedOrbit': 'Orbite exagérée (pas la vraie orbite)',
+	'activity.seasons.setting.playback': "Vitesse de l'année",
+	'activity.seasons.pov.paris': 'Paris',
+	'activity.seasons.pov.sydney': 'Sydney',
+	'activity.seasons.guide.june':
+		'À cet instant, Paris a une longue journée de juin et Sydney une journée courte. Les deux sont à la même distance du Soleil.',
+	'activity.seasons.guide.december':
+		"En décembre, les deux villes s'inversent. La Terre est plus proche du Soleil qu'en juin, et c'est Paris qui a froid.",
+	'activity.seasons.guide.noTilt':
+		"Ramène l'inclinaison de l'axe à zéro. Chaque journée dure encore douze heures ; ce qui rétrécit, c'est la différence entre les saisons.",
+	'activity.seasons.guide.parallelRays':
+		'La lumière du Soleil arrive en rayons parallèles. Là où ils frappent le globe en biais, la même lumière se répartit sur plus de surface.',
+	'activity.seasons.mission.closest.label': 'Le jour le plus proche',
+	'activity.seasons.mission.closest.brief':
+		'Trouve le jour où la Terre est la plus proche du Soleil.',
+	'activity.seasons.mission.closest.prediction':
+		'Quand la Terre est-elle la plus proche du Soleil ? Place la frise dans cette saison, puis dis-le à l’appli.',
+	'activity.seasons.mission.closest.claim.summer':
+		"En été : la Terre est la plus proche du Soleil.",
+	'activity.seasons.mission.closest.claim.winter':
+		"En hiver : la Terre est la plus proche du Soleil.",
+	'activity.seasons.mission.closest.observe':
+		"Regarde la mesure : la Terre est au plus près du Soleil début janvier, en hiver boréal. Ton été est toujours marqué, et il est près de l'autre bout de l'orbite.",
+	'activity.seasons.mission.closest.explain':
+		"La distance varie d'environ 3 %, et sa lumière en plus tombe sur l'été austral. Les saisons viennent de l'inclinaison : le Soleil monte plus haut et la journée dure plus longtemps.",
+	'activity.seasons.mission.closest.close':
+		'À quelques jours près. Suis la distance jusqu’à sa plus petite valeur.',
+	'activity.seasons.mission.closest.right':
+		"C'est début janvier : la Terre est au plus près du Soleil en hiver boréal.",
+	'activity.seasons.scene.distance': 'Distance Terre–Soleil : {distance} millions de km',
+	'activity.seasons.scene.notRealOrbit':
+		"Cette orbite est exagérée exprès. La vraie orbite est presque un cercle, et ce n'est pas elle qui fait les saisons.",
+
 	'pov.sunHeight': 'Hauteur du Soleil : {height}°',
 
 	'scale.distancesNotToScale': 'Les distances entre eux sont raccourcies pour que tu puisses tout voir.',

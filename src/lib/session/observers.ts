@@ -38,10 +38,14 @@ const RAD = 180 / Math.PI;
  * `θ = GMST + longitude` is the same rotation the globe mesh must use; then the
  * equatorial normal is tilted into the ecliptic about the `x` axis by ε.
  */
-export function observerNormal(observer: Observer, instant: Instant): Vec3 {
+export function observerNormal(
+	observer: Observer,
+	instant: Instant,
+	tiltDeg: number = obliquityDeg()
+): Vec3 {
 	const latitude = observer.latitudeDeg * DEG;
 	const theta = (greenwichSiderealTimeDeg(instant) + (observer.longitudeDeg ?? 0)) * DEG;
-	const epsilon = obliquityDeg() * DEG;
+	const epsilon = Math.min(90, Math.max(0, tiltDeg)) * DEG;
 
 	const x = Math.cos(latitude) * Math.cos(theta);
 	const y = Math.cos(latitude) * Math.sin(theta);
@@ -55,8 +59,12 @@ export function observerNormal(observer: Observer, instant: Instant): Vec3 {
 }
 
 /** The observer's position in the ecliptic frame, in AU. */
-export function observerPositionAu(observer: Observer, instant: Instant): Vec3 {
-	const normal = observerNormal(observer, instant);
+export function observerPositionAu(
+	observer: Observer,
+	instant: Instant,
+	tiltDeg?: number
+): Vec3 {
+	const normal = observerNormal(observer, instant, tiltDeg);
 	const center = bodyCenterAu(observer.bodyId, instant);
 
 	return {
@@ -84,8 +92,12 @@ export function sunDirection(instant: Instant): Vec3 {
 }
 
 /** Sun elevation above the observer's horizon, in degrees (−90 … +90). */
-export function sunElevationDeg(observer: Observer, instant: Instant): number {
-	const elevation = dot(observerNormal(observer, instant), sunDirection(instant));
+export function sunElevationDeg(
+	observer: Observer,
+	instant: Instant,
+	tiltDeg?: number
+): number {
+	const elevation = dot(observerNormal(observer, instant, tiltDeg), sunDirection(instant));
 	return Math.asin(Math.min(Math.max(elevation, -1), 1)) * RAD;
 }
 
@@ -93,8 +105,8 @@ export function sunElevationDeg(observer: Observer, instant: Instant): number {
  * Daylight is the sign of the same dot product, geometric centre of the Sun
  * (h₀ = 0, §3.3). Never a clock, never a shader of its own.
  */
-export function isDaylight(observer: Observer, instant: Instant): boolean {
-	return dot(observerNormal(observer, instant), sunDirection(instant)) > 0;
+export function isDaylight(observer: Observer, instant: Instant, tiltDeg?: number): boolean {
+	return dot(observerNormal(observer, instant, tiltDeg), sunDirection(instant)) > 0;
 }
 
 /**
@@ -120,10 +132,10 @@ function azimuthFromHourAngleDeg(
 }
 
 /** The Sun's azimuth, measured clockwise from north (ASTRONOMY.md §3.5). */
-export function sunAzimuthDeg(observer: Observer, instant: Instant): number {
+export function sunAzimuthDeg(observer: Observer, instant: Instant, tiltDeg?: number): number {
 	return azimuthFromHourAngleDeg(
 		observer.latitudeDeg,
-		solarDeclinationDeg(instant),
+		solarDeclinationDeg(instant, tiltDeg),
 		greenwichSiderealTimeDeg(instant) + (observer.longitudeDeg ?? 0) - sunRightAscensionDeg(instant)
 	);
 }

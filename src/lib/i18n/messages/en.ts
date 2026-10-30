@@ -140,6 +140,41 @@ export const en = {
 	'activity.latitudes.mission.zenith.right':
 		'That is the June solstice: the only day the Sun reaches the zenith there.',
 
+
+	'activity.seasons.camera.year': 'The whole year',
+	'activity.seasons.camera.sunlit': 'From the Sun side',
+	'activity.seasons.camera.abovePole': 'From above the pole',
+	'activity.seasons.setting.tilt': 'Axial tilt',
+	'activity.seasons.setting.exaggeratedOrbit': 'Exaggerated orbit (not the real orbit)',
+	'activity.seasons.setting.playback': 'Year speed',
+	'activity.seasons.pov.paris': 'Paris',
+	'activity.seasons.pov.sydney': 'Sydney',
+	'activity.seasons.guide.june':
+		'At this instant Paris has a long June day while Sydney has a short one. Both are the same distance from the Sun.',
+	'activity.seasons.guide.december':
+		'In December the two places swap. The Earth is nearer the Sun now than in June, and Paris is the cold one.',
+	'activity.seasons.guide.noTilt':
+		'Drag the axial tilt to zero. Every day still lasts twelve hours; what shrinks is the difference between the seasons.',
+	'activity.seasons.guide.parallelRays':
+		'The sunlight arrives as parallel rays. Where they strike the globe at a slant, the same light is spread over more ground.',
+	'activity.seasons.mission.closest.label': 'The closest day',
+	'activity.seasons.mission.closest.brief': 'Find the day when the Earth is closest to the Sun.',
+	'activity.seasons.mission.closest.prediction':
+		'When is the Earth closest to the Sun? Put the timeline in that season, then tell the app.',
+	'activity.seasons.mission.closest.claim.summer': 'In summer: the Earth is closest to the Sun.',
+	'activity.seasons.mission.closest.claim.winter': 'In winter: the Earth is closest to the Sun.',
+	'activity.seasons.mission.closest.observe':
+		'Look at the measurement: the Earth is nearest the Sun in early January, in the northern winter. Your summer is still marked, and it is near the far end of the orbit.',
+	'activity.seasons.mission.closest.explain':
+		'The distance changes by about 3 %, and its extra light falls on the southern summer. The seasons come from the tilt: the Sun climbs higher and the day lasts longer.',
+	'activity.seasons.mission.closest.close':
+		'A few days away. Follow the distance readout towards its smallest value.',
+	'activity.seasons.mission.closest.right':
+		'That is early January: the Earth is closest to the Sun in the northern winter.',
+	'activity.seasons.scene.distance': 'Earth–Sun distance: {distance} million km',
+	'activity.seasons.scene.notRealOrbit':
+		'This orbit is exaggerated on purpose. The real orbit is almost a circle, and it is not what makes the seasons.',
+
 	'pov.sunHeight': 'Sun height: {height}°',
 
 	'scale.distancesNotToScale': 'The distances between them are shortened so you can see everything.',

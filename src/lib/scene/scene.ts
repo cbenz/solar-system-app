@@ -148,6 +148,29 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 	});
 	const trackLines = new Map<BodyId, THREE.Line>();
 
+	// The seasons activity's two geometric objects (ticket 13). Both are driven
+	// by the session's `season` field: the circle/ellipse around the Sun and the
+	// parallel sunlight bundle. A session without seasons leaves them hidden.
+	const orbitMaterial = new THREE.LineBasicMaterial({
+		color: 0x93c5fd,
+		transparent: true,
+		opacity: 0.55,
+		depthWrite: false
+	});
+	const orbitLine = new THREE.Line(new THREE.BufferGeometry(), orbitMaterial);
+	orbitLine.visible = false;
+	scene.add(orbitLine);
+
+	const rayMaterial = new THREE.LineBasicMaterial({
+		color: 0xfff2c4,
+		transparent: true,
+		opacity: 0.6,
+		depthWrite: false
+	});
+	const rayLines = new THREE.LineSegments(new THREE.BufferGeometry(), rayMaterial);
+	rayLines.visible = false;
+	scene.add(rayLines);
+
 	// Latitude circles: line loops on the sphere, slightly outside it so they do
 	// not z-fight with the surface. The snapshot says which ones a session draws
 	// (the Equator always; ticket 11's activity adds the Tropics and Polar
@@ -366,6 +389,34 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 		if (moonBody !== undefined) {
 			moon.position.copy(drawnOffset(moonBody.position));
 			moon.scale.setScalar(drawnRadius(moonBody));
+		}
+
+		// The seasons geometry: the drawn orbit and the parallel sunlight. The
+		// eccentricity is the session's decision (ADR-0004 rule 1); the renderer
+		// only maps its points through the same drawn offset as the bodies.
+		const season = snapshot.season;
+		if (season === null) {
+			orbitLine.visible = false;
+			rayLines.visible = false;
+		} else {
+			orbitLine.visible = true;
+			orbitLine.geometry.dispose();
+			orbitLine.geometry = new THREE.BufferGeometry().setFromPoints(
+				season.orbit.map(drawnOffset)
+			);
+
+			rayLines.visible = true;
+			rayLines.geometry.dispose();
+			rayLines.geometry = new THREE.BufferGeometry().setFromPoints(
+				season.rays.rays.flatMap((ray) => {
+					const end = new THREE.Vector3(
+						ray.origin.x + ray.direction.x * ray.lengthAu,
+						ray.origin.y + ray.direction.y * ray.lengthAu,
+						ray.origin.z + ray.direction.z * ray.lengthAu
+					);
+					return [drawnOffset(ray.origin), drawnOffset(end)];
+				})
+			);
 		}
 
 		// An escaped body's future track, sampled by the session and drawn here.
@@ -911,6 +962,8 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 			scene.remove(sun);
 			scene.remove(moon);
 			scene.remove(stars);
+			scene.remove(orbitLine);
+			scene.remove(rayLines);
 			for (const line of trackLines.values()) scene.remove(line);
 			for (const dot of observerDots.values()) surface.remove(dot);
 			observerDots.clear();
@@ -924,6 +977,10 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 			moonGeometry.dispose();
 			moonMaterial.dispose();
 			trackMaterial.dispose();
+			orbitLine.geometry.dispose();
+			orbitMaterial.dispose();
+			rayLines.geometry.dispose();
+			rayMaterial.dispose();
 			for (const line of trackLines.values()) line.geometry.dispose();
 			trackLines.clear();
 			observerGeometry.dispose();
