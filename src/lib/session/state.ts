@@ -4,6 +4,7 @@
  */
 
 import { DEFAULT_LOCALE, type Locale } from '$lib/i18n/locale';
+import { nextObserverColour } from './observer-colour';
 import { sandboxSpan } from './time';
 import type { BodyId, Instant, SessionState, TimeSpan } from './types';
 
@@ -39,7 +40,16 @@ export function createInitialState(options: InitialStateOptions = {}): SessionSt
 		trueDistance: false,
 		trueSize: false,
 		subsystem: [...DEFAULT_SUBSYSTEM],
-		observers: [],
+		// One observer for ticket 05 so a POV is visible before placement exists
+		// (ticket 06). Placement reuses the same id and colour.
+		observers: [
+			{
+				id: 'pov-1',
+				bodyId: 'earth',
+				latitudeDeg: 48.8566,
+				colour: nextObserverColour([])
+			}
+		],
 		settings: {
 			playbackSpeed: DEFAULT_PLAYBACK_SPEED,
 			...(options.settings ?? {})

@@ -21,13 +21,15 @@ concern. Do not grow a god-reducer; add a file and append it to a list.
 | `types.ts` | `Instant`, `Vec3`, `Observer`, `BodyId`, `SessionState`, `SceneSnapshot`, `SessionEvent`. Distances are **AU** (see the doc comment; `AU_KM` converts). |
 | `ephemeris.ts` | closed-form two-body Kepler: elements → position, the Earth and the Moon, the Sun's longitude and declination, GMST. |
 | `time.ts` | instant arithmetic, Julian Day, span ↔ track ratio, playback tick, span words. |
-| `observers.ts` | the observer's surface normal, Sun elevation and daylight — one dot product, one rotation function. |
+| `observers.ts` | the observer's surface normal, Sun elevation, azimuth and daylight — one dot product, one rotation function. |
+| `observer-colour.ts` | the fixed three-colour observer palette and its first-free assignment. |
+| `sky.ts` | `skyToScreen`: the POV panel's only geometry, a pure (altitude, azimuth) → pixel map. |
 | `snap.ts` | the pure `snap(instant, snapPoints, ratio)` rule. |
 | `snap-points.ts` | which instants are worth snapping to, for a session state. |
 | `state.ts` | `createInitialState`, `reconcileTimeSpan` (span and instant normalisation). |
 | `scene.ts` | composes `scene-bodies.ts` and `scene-observers.ts` into a `SceneSnapshot`. |
 | `reducer.ts` | the handler list and the one entry point. |
-| `handlers/*.ts` | one module per event family. |
+| `handlers/*.ts` | one module per event family (`place-observer` owns observer identity and colour). |
 | `index.ts` | the public surface; components import only from here. |
 
 ## Adding an event family
@@ -64,6 +66,15 @@ Add a contributor to `BODY_CONTRIBUTORS` in `scene-bodies.ts` (return `null`
 when the body is outside the subsystem) and add the id to `BodyId` in
 `types.ts`. Positions must never read the subsystem — that is what makes
 "shrinking the subsystem never moves a body that stays present" true.
+
+## Observer colour and longitude
+
+The session assigns a new observer the first unused colour from
+`observer-colour.ts`; a component never picks one, and moving an observer along
+its meridian keeps its colour. Longitude is not a control: `place-observer`
+stores only latitude, and `observedNormal` reads `longitudeDeg ?? 0`, so the
+same `earthRotationAngle` sweep carries the day. An activity may declare a
+longitude for a staged observation without making it interactive.
 
 ## Adding a derived observer quantity
 

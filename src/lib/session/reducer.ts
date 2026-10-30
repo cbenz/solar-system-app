@@ -7,6 +7,7 @@
  * `SESSION_HANDLERS`. Nothing else in this file changes.
  */
 
+import { handlePlaceObserver } from './handlers/place-observer';
 import { handleScrubTo } from './handlers/scrub-to';
 import { handleSetLocale } from './handlers/set-locale';
 import { buildScene } from './scene';
@@ -16,7 +17,11 @@ import type { SessionEvent, SessionResult, SessionState } from './types';
 /** A handler returns `null` for events that are not its business. */
 export type SessionHandler = (state: SessionState, event: SessionEvent) => SessionState | null;
 
-export const SESSION_HANDLERS: readonly SessionHandler[] = [handleScrubTo, handleSetLocale];
+export const SESSION_HANDLERS: readonly SessionHandler[] = [
+	handleScrubTo,
+	handlePlaceObserver,
+	handleSetLocale
+];
 
 /**
  * An event of the union that no ticket has implemented yet. Loud on purpose: a

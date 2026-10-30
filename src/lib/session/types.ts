@@ -36,15 +36,17 @@ export type BodyId = 'sun' | 'earth' | 'moon';
  * Someone standing on a body, whose view fills a POV.
  *
  * Latitude is the only control (the planet's rotation sweeps every longitude).
- * `longitudeDeg` is a convention, not a control: it is 0 unless an activity
- * declares otherwise, and the same rotation function drives the globe mesh and
- * the observer's hour angle.
+ * `longitudeDeg` is an optional convention, not a control: placement leaves it
+ * out, and the same rotation function then carries the day. An activity may
+ * declare another longitude for a staged observation. `colour` is assigned by
+ * the session when the observer is placed, never by a component.
  */
 export type Observer = {
 	id: string;
 	bodyId: BodyId;
 	latitudeDeg: number;
-	longitudeDeg: number;
+	longitudeDeg?: number;
+	colour: string;
 };
 
 /**
@@ -83,7 +85,11 @@ export type SceneBody = { id: BodyId; position: Vec3 };
 export type SceneObserver = {
 	observer: Observer;
 	sunElevationDeg: number;
+	/** Azimuth measured clockwise from north (0 … 360), for the POV panel. */
+	sunAzimuthDeg: number;
 	daylight: boolean;
+	/** Outward surface normal in the ecliptic frame, for the dot on the globe. */
+	surfaceNormal: Vec3;
 	visibleBodies: BodyId[];
 };
 

@@ -19,8 +19,11 @@ import {
 	earthHeliocentricPositionAu,
 	greenwichSiderealTimeDeg,
 	moonHeliocentricPositionAu,
+	normalizeDeg,
 	obliquityDeg,
+	solarDeclinationDeg,
 	subtract,
+	sunLongitudeDeg,
 	unit
 } from './ephemeris';
 import type { BodyId, Instant, Observer, Vec3 } from './types';
@@ -36,7 +39,7 @@ const RAD = 180 / Math.PI;
  */
 export function observerNormal(observer: Observer, instant: Instant): Vec3 {
 	const latitude = observer.latitudeDeg * DEG;
-	const theta = (greenwichSiderealTimeDeg(instant) + observer.longitudeDeg) * DEG;
+	const theta = (greenwichSiderealTimeDeg(instant) + (observer.longitudeDeg ?? 0)) * DEG;
 	const epsilon = obliquityDeg() * DEG;
 
 	const x = Math.cos(latitude) * Math.cos(theta);
@@ -91,6 +94,31 @@ export function sunElevationDeg(observer: Observer, instant: Instant): number {
  */
 export function isDaylight(observer: Observer, instant: Instant): boolean {
 	return dot(observerNormal(observer, instant), sunDirection(instant)) > 0;
+}
+
+/** The Sun's azimuth, measured clockwise from north (ASTRONOMY.md §3.5). */
+export function sunAzimuthDeg(observer: Observer, instant: Instant): number {
+	const latitude = observer.latitudeDeg * DEG;
+	const declination = solarDeclinationDeg(instant) * DEG;
+	const hourAngle =
+		(greenwichSiderealTimeDeg(instant) +
+			(observer.longitudeDeg ?? 0) -
+			sunRightAscensionDeg(instant)) *
+		DEG;
+
+	const east = -Math.cos(declination) * Math.sin(hourAngle);
+	const north =
+		Math.sin(declination) * Math.cos(latitude) -
+		Math.cos(declination) * Math.sin(latitude) * Math.cos(hourAngle);
+
+	return normalizeDeg(Math.atan2(east, north) * RAD);
+}
+
+/** The Sun's apparent right ascension, in degrees. */
+function sunRightAscensionDeg(instant: Instant): number {
+	const longitude = sunLongitudeDeg(instant) * DEG;
+	const epsilon = obliquityDeg() * DEG;
+	return normalizeDeg(Math.atan2(Math.cos(epsilon) * Math.sin(longitude), Math.cos(longitude)) * RAD);
 }
 
 /** Elevation of any point above the observer's horizon, in degrees. */

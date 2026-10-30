@@ -13,6 +13,10 @@ export {
 } from './state';
 export type { InitialStateOptions } from './state';
 export { buildScene } from './scene';
+export { MAX_OBSERVERS } from './handlers/place-observer';
+export { OBSERVER_COLOURS } from './observer-colour';
+export { HORIZON_FRACTION, horizonY, skyToScreen } from './sky';
+export type { SkyPoint, SkyViewport } from './sky';
 export { BODY_CONTRIBUTORS } from './scene-bodies';
 export type { BodyContributor } from './scene-bodies';
 export { OBSERVER_CONTRIBUTORS } from './scene-observers';
@@ -44,7 +48,12 @@ export {
 	sunGeocentricPositionAu,
 	sunLongitudeDeg
 } from './ephemeris';
-export { isDaylight, sunElevationDeg } from './observers';
+export {
+	isDaylight,
+	observerNormal,
+	sunAzimuthDeg,
+	sunElevationDeg
+} from './observers';
 export type {
 	BodyId,
 	Instant,

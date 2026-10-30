@@ -33,7 +33,9 @@ describe('the session module', () => {
 		expect(result.state.instant).toBe(instant);
 		expect(result.state.mode).toBe('sandbox');
 		expect(result.scene.bodies.map((body) => body.id)).toEqual(['sun', 'earth', 'moon']);
-		expect(result.scene.observers).toEqual([]);
+		// Ticket 05 seeds one observer so a POV is visible before placement exists.
+		expect(result.scene.observers).toHaveLength(1);
+		expect(result.scene.observers[0]?.observer.id).toBe('pov-1');
 	});
 
 	it('leaves the state untouched when the instant does not move', () => {
@@ -184,7 +186,7 @@ describe('observers in the scene snapshot', () => {
 		id: 'pov-1',
 		bodyId: 'earth',
 		latitudeDeg: 0,
-		longitudeDeg: 0
+		colour: '#e69f00'
 	};
 
 	function withObserver(instant: number): SceneSnapshot {
@@ -210,7 +212,7 @@ describe('observers in the scene snapshot', () => {
 			id: 'pov-paris',
 			bodyId: 'earth',
 			latitudeDeg: 48.8566,
-			longitudeDeg: 0
+			colour: '#e69f00'
 		};
 
 		// Find local solar noon on the solstice day: the elevation peaks there.
