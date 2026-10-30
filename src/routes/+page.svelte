@@ -16,6 +16,7 @@
 		type SessionEvent,
 		type SessionState
 	} from '$lib/session';
+	import ScaleBanner from '$lib/ui/ScaleBanner.svelte';
 	import Timeline from '$lib/ui/Timeline.svelte';
 
 	// The device language decides the first screen (ADR-0006); switching is an event.
@@ -47,6 +48,7 @@
 </svelte:head>
 
 <div class="scene" bind:this={host}></div>
+<ScaleBanner session={state} {dispatch} />
 <Timeline session={state} {dispatch} />
 <LanguageSwitch locale={state.locale} onSelect={(locale) => dispatch({ type: 'set-locale', locale })} />
 

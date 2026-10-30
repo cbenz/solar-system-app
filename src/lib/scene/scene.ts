@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { SceneSnapshot } from '$lib/session';
+import { DRAWN_EARTH_RADIUS_AU, trueRadiusAu, type SceneBody, type SceneSnapshot } from '$lib/session';
 import { createEarthTexture } from './earth-texture';
 import { createStarfield } from './starfield';
 import { EMPTY_GESTURE, reduceGesture, type GestureState } from './gesture';
@@ -13,6 +13,13 @@ import { clampCameraDistance, clampPitch } from './view';
  * can grow the scene without teaching the Svelte layer about WebGL.
  */
 
+/**
+ * One scene unit is the Earth's radius in the readable default, so the camera
+ * framing ticket 01 chose keeps working. Distances and radii are never
+ * distorted here: the session's snapshot carries the two factors and this file
+ * only multiplies (`src/lib/session/scale.ts`, ADR-0003).
+ */
+const UNITS_PER_AU = 1 / DRAWN_EARTH_RADIUS_AU;
 const EARTH_RADIUS = 1;
 const INITIAL_CAMERA_DISTANCE = 3.2;
 const INITIAL_YAW = 0;
@@ -37,7 +44,9 @@ export function createScene(host: HTMLElement): SceneHandle {
 	host.appendChild(canvas);
 
 	const scene = new THREE.Scene();
-	const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 250);
+	// Far enough for the Sun at its true distance (about 100 scene units) and the
+	// decorative star shell (about 80).
+	const camera = new THREE.PerspectiveCamera(45, 1, 0.02, 2000);
 
 	const earthGeometry = new THREE.SphereGeometry(EARTH_RADIUS, 64, 48);
 	const earthTexture = createEarthTexture(renderer.capabilities.getMaxAnisotropy());
@@ -50,12 +59,18 @@ export function createScene(host: HTMLElement): SceneHandle {
 	earth.rotation.order = 'YXZ';
 	scene.add(earth);
 
-	// Stand-in Sun mesh, with its light coming from the Sun's real position. The
-	// session snapshot carries where the Earth is; here the Earth is the origin,
-	// so the Sun's direction is the opposite of the Earth's heliocentric vector.
-	// Ticket 04 owns the distance scale that will move the Earth along its orbit.
+	// The Sun: a plain glowing sphere, placed and sized from the snapshot's
+	// factors. The camera orbits the Earth, so the Earth is the origin of the
+	// drawn frame and the Sun sits at the opposite of the Earth's drawn offset.
+	const sunGeometry = new THREE.SphereGeometry(1, 48, 32);
+	const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xfff2c4 });
+	const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+	scene.add(sun);
+
+	// Light comes from the Sun's real position and nowhere else (ADR-0002,
+	// ADR-0004). The distance factors move the Sun, never the light's source.
 	const sunlight = new THREE.DirectionalLight(0xffffff, 2.4);
-	sunlight.position.set(-4, 2, 3);
+	sunlight.position.copy(sun.position);
 	scene.add(sunlight);
 
 	// Deliberately far below the directional light: the night half must be dark.
@@ -80,15 +95,30 @@ export function createScene(host: HTMLElement): SceneHandle {
 		earth.rotation.set(pitch, yaw, 0);
 	}
 
+	/** The drawn radius of a body, in scene units, from its true radius and factor. */
+	function drawnRadius(body: SceneBody): number {
+		return trueRadiusAu(body.id) * body.radiusFactor * UNITS_PER_AU;
+	}
+
 	function applySnapshot(snapshot: SceneSnapshot): void {
 		const earthBody = snapshot.bodies.find((body) => body.id === 'earth');
 		if (earthBody === undefined) return;
 
-		// The Sun sits at the origin in the ecliptic frame; the Earth's own vector
-		// points away from it, so the light comes from the opposite direction.
+		// The Earth is the origin of the drawn frame. Its position is true in the
+		// snapshot, so the drawn Sun offset is that vector scaled by the Earth's
+		// distance factor and flipped: the Sun is where the Earth is not.
 		const { x, y, z } = earthBody.position;
-		const length = Math.hypot(x, y, z) || 1;
-		sunlight.position.set((-x / length) * 10, (-y / length) * 10, (-z / length) * 10);
+		const offset = new THREE.Vector3(-x, -y, -z).multiplyScalar(
+			earthBody.distanceFactor * UNITS_PER_AU
+		);
+
+		sun.position.copy(offset);
+		sunlight.position.copy(offset);
+		earth.scale.setScalar(drawnRadius(earthBody));
+
+		const sunBody = snapshot.bodies.find((body) => body.id === 'sun');
+		sun.visible = sunBody !== undefined;
+		if (sunBody !== undefined) sun.scale.setScalar(drawnRadius(sunBody));
 	}
 
 	// --- Gestures -----------------------------------------------------------
@@ -225,10 +255,13 @@ export function createScene(host: HTMLElement): SceneHandle {
 			canvas.removeEventListener('wheel', onWheel);
 
 			scene.remove(earth);
+			scene.remove(sun);
 			scene.remove(stars);
 			earthGeometry.dispose();
 			earthMaterial.dispose();
 			earthTexture.dispose();
+			sunGeometry.dispose();
+			sunMaterial.dispose();
 
 			const starMaterial = stars.material;
 			if (Array.isArray(starMaterial)) {
