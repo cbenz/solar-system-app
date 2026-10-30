@@ -8,15 +8,18 @@
 	import LanguageSwitch from '$lib/i18n/LanguageSwitch.svelte';
 	import { resolveLocale } from '$lib/i18n/detect';
 	import { translate } from '$lib/i18n/translate';
-	import { createScene, type SceneHandle } from '$lib/scene/scene';
+	import type { PlacementIntent } from '$lib/scene/gesture';
+	import { createScene, type ObserverLabelPosition, type SceneHandle } from '$lib/scene/scene';
 	import {
 		applyEvent,
 		buildScene,
 		createInitialState,
+		placementTargetId,
 		type SceneSnapshot,
 		type SessionEvent,
 		type SessionState
 	} from '$lib/session';
+	import ObserverLabels from '$lib/ui/ObserverLabels.svelte';
 	import PovDock from '$lib/ui/PovDock.svelte';
 	import ScaleBanner from '$lib/ui/ScaleBanner.svelte';
 	import Timeline from '$lib/ui/Timeline.svelte';
@@ -26,18 +29,33 @@
 
 	let host: HTMLDivElement;
 	let scene: SceneHandle | null = null;
-	let state = $state<SessionState>(createInitialState({ locale: resolveLocale(deviceLanguage) }));
-	const snapshot = $derived<SceneSnapshot>(buildScene(state));
+	let session = $state<SessionState>(createInitialState({ locale: resolveLocale(deviceLanguage) }));
+	let labelPositions = $state<Record<string, ObserverLabelPosition>>({});
+	const snapshot = $derived<SceneSnapshot>(buildScene(session));
 
 	function dispatch(event: SessionEvent): void {
-		const result = applyEvent(state, event);
-		state = result.state;
+		const result = applyEvent(session, event);
+		session = result.state;
 		scene?.update(result.scene);
 	}
 
+	/**
+	 * A placement gesture names the POV it lands on: a drag keeps the dot the
+	 * child grabbed, a tap goes to the selected POV (the first one, for now).
+	 */
+	function placeObserver(intent: PlacementIntent): void {
+		const povId = intent.kind === 'drag' ? intent.observerId : placementTargetId(session);
+		dispatch({ type: 'place-observer', povId, latitudeDeg: intent.latitudeDeg });
+	}
+
 	onMount(() => {
-		const created = createScene(host);
-		created.update(buildScene(state));
+		const created = createScene(host, {
+			onPlacement: placeObserver,
+			onLabelsChange: (labels) => {
+				labelPositions = Object.fromEntries(labels.map((label) => [label.id, label]));
+			}
+		});
+		created.update(buildScene(session));
 		scene = created;
 		return () => {
 			created.destroy();
@@ -47,14 +65,15 @@
 </script>
 
 <svelte:head>
-	<title>{translate(state.locale, 'app.title')}</title>
+	<title>{translate(session.locale, 'app.title')}</title>
 </svelte:head>
 
 <div class="scene" bind:this={host}></div>
+<ObserverLabels entries={snapshot.observers} positions={labelPositions} locale={session.locale} />
 <PovDock observers={snapshot.observers} />
-<ScaleBanner session={state} {dispatch} />
-<Timeline session={state} {dispatch} />
-<LanguageSwitch locale={state.locale} onSelect={(locale) => dispatch({ type: 'set-locale', locale })} />
+<ScaleBanner session={session} {dispatch} />
+<Timeline session={session} {dispatch} />
+<LanguageSwitch locale={session.locale} onSelect={(locale) => dispatch({ type: 'set-locale', locale })} />
 
 <style>
 	.scene {
