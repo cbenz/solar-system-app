@@ -17,7 +17,7 @@
 
 import type { Locale } from '$lib/i18n/locale';
 import type { MessageKey } from '$lib/i18n/messages';
-import type { Activity } from '../../activities/types';
+import type { Activity, MissionMotif } from '../../activities/types';
 import type { ShadowGeometry } from './shadow';
 
 /**
@@ -286,6 +286,8 @@ export type SceneMission = {
 	brief: MessageKey;
 	/** The prompt for the current phase (see `promptFor` in `missions.ts`). */
 	prompt: MessageKey;
+	/** The brief's scene-derived pictogram, or null when the mission declares none. */
+	motif: MissionMotif | null;
 	prediction: RecordedPrediction | null;
 	/** Null before the child has committed a prediction. */
 	outcome: SuccessOutcome | null;

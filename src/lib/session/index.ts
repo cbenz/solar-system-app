@@ -160,7 +160,8 @@ export {
 	observerNormal,
 	pointAltitudeAzimuthDeg,
 	sunAzimuthDeg,
-	sunElevationDeg
+	sunElevationDeg,
+	sunHourAngleDeg
 } from './observers';
 export {
 	bodyScale,

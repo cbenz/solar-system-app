@@ -145,6 +145,7 @@ export function sceneMission(state: SessionState): SceneMission | null {
 		phase: progress.phase,
 		label: mission.label,
 		brief: mission.brief,
+		motif: mission.motif === undefined ? null : mission.motif(state),
 		prompt: promptFor(mission, progress.phase),
 		prediction: progress.prediction,
 		outcome,

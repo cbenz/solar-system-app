@@ -130,6 +130,9 @@ explain`, forward only, and the answer to every phase is the scene.
   `observe`.
 - **Observe.** The model has answered; the panel says what to look at. The
   prediction is still there and still says what the child said.
+- **A brief's picture.** A mission may declare `motif`, a pure function of the
+  scene returning `sun-high`, `sun-on-horizon` or `sun-below`. `sceneMission`
+  evaluates it for the snapshot; the panel draws it and decides nothing.
 - **Explain.** `explain-mission`, then `finish-mission` back to the activity's
   sandbox with the instant and camera unchanged.
 

@@ -97,6 +97,26 @@ export function isDaylight(observer: Observer, instant: Instant): boolean {
 	return dot(observerNormal(observer, instant), sunDirection(instant)) > 0;
 }
 
+/** Wrap degrees into (−180, 180]. */
+function wrap180(degrees: number): number {
+	return normalizeDeg(degrees + 180) - 180;
+}
+
+/**
+ * The Sun's hour angle: zero at local solar noon, negative in the morning and
+ * positive in the afternoon (ASTRONOMY.md §3.1).
+ *
+ * This is the quantity a clock cannot give: it is what makes "noon where I am"
+ * a statement about the observer's meridian rather than about UTC.
+ */
+export function sunHourAngleDeg(observer: Observer, instant: Instant): number {
+	return wrap180(
+		greenwichSiderealTimeDeg(instant) +
+			(observer.longitudeDeg ?? 0) -
+			sunRightAscensionDeg(instant)
+	);
+}
+
 /**
  * Azimuth from a declination and an hour angle, clockwise from north
  * (ASTRONOMY.md §3.5). The one place the horizon frame is built, so the Sun
@@ -124,7 +144,7 @@ export function sunAzimuthDeg(observer: Observer, instant: Instant): number {
 	return azimuthFromHourAngleDeg(
 		observer.latitudeDeg,
 		solarDeclinationDeg(instant),
-		greenwichSiderealTimeDeg(instant) + (observer.longitudeDeg ?? 0) - sunRightAscensionDeg(instant)
+		sunHourAngleDeg(observer, instant)
 	);
 }
 
