@@ -48,6 +48,17 @@ export const fr: Record<MessageKey, string> = {
 	'activity.day-and-night.camera.close': 'De près',
 	'activity.day-and-night.setting.rotation': 'Vitesse de rotation',
 
+	'mission.phase.predict': 'Prédis',
+	'mission.phase.manipulate': 'Essaie',
+	'mission.phase.observe': 'Regarde',
+	'mission.phase.explain': 'Explique',
+	'mission.abandon': 'Quitter cette mission',
+	'mission.prediction.commit': 'Voilà ce que je pense',
+	'mission.prediction.recorded': 'Tu as dit : {statement}',
+	'mission.look': 'Regarde le modèle',
+	'mission.explain': 'Ce qui s’est passé',
+	'mission.finish': 'Retour au bac à sable',
+
 	'scale.distancesNotToScale': 'Les distances entre eux sont raccourcies pour que tu puisses tout voir.',
 	'scale.sizesNotToScale': "La Terre, la Lune et le Soleil sont dessinés plus grands qu'en vrai."
 };

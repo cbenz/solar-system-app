@@ -9,6 +9,7 @@
 
 import { handleCamera } from './handlers/camera';
 import { handleOpenActivity } from './handlers/open-activity';
+import { handleMission } from './handlers/mission';
 import { handlePlaceObserver } from './handlers/place-observer';
 import { handleSetSetting } from './handlers/set-setting';
 import { handleScrubTo } from './handlers/scrub-to';
@@ -28,7 +29,8 @@ export const SESSION_HANDLERS: readonly SessionHandler[] = [
 	handleSetSetting,
 	handleCamera,
 	handleSetLocale,
-	handleToggleScale
+	handleToggleScale,
+	handleMission
 ];
 
 /**

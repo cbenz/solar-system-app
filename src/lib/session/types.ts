@@ -16,6 +16,7 @@
  */
 
 import type { Locale } from '$lib/i18n/locale';
+import type { MessageKey } from '$lib/i18n/messages';
 import type { Activity } from '../../activities/types';
 
 /**
@@ -62,6 +63,51 @@ export type TimeSpan = {
 export type SessionMode = 'sandbox' | 'activity';
 export type SessionPhase = 'sandbox' | 'guide' | 'mission';
 
+/**
+ * The four phases of a mission, in order and forward only (ADR-0004).
+ *
+ * `predict` records what the child expects, `manipulate` is the child acting on
+ * the model, `observe` is the model answering, `explain` is the words after the
+ * answer. Abandoning is the only way out that skips ahead, and it leaves the
+ * mission for the activity's sandbox.
+ */
+export type MissionPhase = 'predict' | 'manipulate' | 'observe' | 'explain';
+
+/**
+ * What the child claimed, kept verbatim for the rest of the mission.
+ *
+ * The instant and the settings are copies taken at the moment of the commit, so
+ * moving time afterwards cannot rewrite what the child said.
+ */
+export type RecordedPrediction = {
+	missionId: string;
+	propositionId: string;
+	/** The claim in the child's words; the panel plays it back. */
+	statement: MessageKey;
+	instant: Instant;
+	settings: Record<string, number | boolean>;
+};
+
+/** The mission currently running, if any. Never null while `phase` is 'mission'. */
+export type MissionProgress = {
+	missionId: string;
+	phase: MissionPhase;
+	prediction: RecordedPrediction | null;
+};
+
+/** How close the scene is to the phenomenon, from the mission's own predicate. */
+export type SuccessState = 'far' | 'close' | 'right';
+
+/**
+ * A graded answer: `measure` is the distance from the target in the mission's
+ * units (0 when a discrete task is satisfied). It is for tests and for tuning
+ * tolerances, never for display: the child sees words and the scene.
+ */
+export type SuccessOutcome = {
+	state: SuccessState;
+	measure: number;
+};
+
 /** The camera's two numbers: distance in drawn Earth radii, pitch in radians. */
 export type CameraState = {
 	distance: number;
@@ -103,6 +149,8 @@ export type SessionState = {
 	activities: readonly Activity[];
 	/** Set while an activity is open; `null` in the sandbox. */
 	sandboxView: SandboxView | null;
+	/** Set while a mission runs; `null` in the activity's sandbox or the guide. */
+	mission: MissionProgress | null;
 };
 
 /**
@@ -164,11 +212,31 @@ export type SceneMarker = {
 	bodyId: BodyId;
 };
 
+/**
+ * The mission as the panel draws it: the phase, the words for this phase, the
+ * recorded prediction, the graded answer and the close-attempt feedback. The
+ * answer itself is the scene, so nothing here names it.
+ */
+export type SceneMission = {
+	id: string;
+	phase: MissionPhase;
+	label: MessageKey;
+	brief: MessageKey;
+	/** The prompt for the current phase (see `promptFor` in `missions.ts`). */
+	prompt: MessageKey;
+	prediction: RecordedPrediction | null;
+	/** Null before the child has committed a prediction. */
+	outcome: SuccessOutcome | null;
+	/** The close-attempt words, or null when the attempt is not close. */
+	feedback: MessageKey | null;
+};
+
 export type SceneSnapshot = {
 	bodies: SceneBody[];
 	observers: SceneObserver[];
 	markers: SceneMarker[];
 	camera: CameraState;
+	mission: SceneMission | null;
 };
 
 /**
@@ -188,7 +256,13 @@ export type SessionEvent =
 	| { type: 'select-camera-preset'; presetId: string }
 	| { type: 'toggle-true-distance' }
 	| { type: 'toggle-true-size' }
-	| { type: 'set-locale'; locale: Locale };
+	| { type: 'set-locale'; locale: Locale }
+	| { type: 'start-mission'; missionId: string }
+	| { type: 'record-prediction' }
+	| { type: 'reveal-mission' }
+	| { type: 'explain-mission' }
+	| { type: 'finish-mission' }
+	| { type: 'abandon-mission' };
 
 export type SessionResult = {
 	state: SessionState;

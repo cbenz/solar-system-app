@@ -36,8 +36,9 @@ concern. Do not grow a god-reducer; add a file and append it to a list.
 | `scene-markers.ts` | which activity markers are drawn on which bodies (sandbox only). |
 | `subsystem.ts` | `Subsystem` (a tuple starting with the Sun) and `withSun`, the normaliser. |
 | `camera.ts` | `clampCamera`: the session's answer to a camera request; free in the sandbox, clamped to the open activity's presets. |
+| `missions.ts` | the pure mission rules: `evaluateSuccess`/`graded` (far, close, right), `isSatisfied`, `matchPrediction`, `sceneMission`. |
 | `reducer.ts` | the handler list and the one entry point. |
-| `handlers/*.ts` | one module per event family (`place-observer` owns observer identity and colour, `open-activity` owns the sandbox round trip, `set-setting` validates against the activity, `camera` owns presets and the clamp). |
+| `handlers/*.ts` | one module per event family (`place-observer` owns observer identity and colour, `open-activity` owns the sandbox round trip, `set-setting` validates against the activity, `camera` owns presets and the clamp, `mission` owns the mission state machine). |
 | `index.ts` | the public surface; components import only from here. |
 
 ## Activities
@@ -103,6 +104,38 @@ contributor already filled, so `scene.ts` maps every entry through
 owns `visibleBodies`, `visibilityLimit` and `moon`. It also has the `moon.ts`
 and `visibility.ts` modules behind it; a component draws, it does not decide.
 
+## Missions
+
+A mission is never a form (ADR-0004). It runs `predict → manipulate → observe →
+explain`, forward only, and the answer to every phase is the scene.
+
+- **Predict.** The child states a claim by producing a scene state, not by
+  picking a row: `record-prediction` matches the state against the mission's
+  propositions and records the first whose `holds` is true, together with a
+  **copy** of the instant and the settings. Nothing overwrites that copy — not
+  moving time, not the reveal. A scene that matches no proposition records
+  nothing and stays in `predict`.
+- **Manipulate.** The child moves time, the camera or a setting.
+  `evaluateSuccess` grades the current scene on every event: `right` inside the
+  mission's `tolerance`, `close` inside `closeTolerance` (the "almost" band the
+  child can correct from), `far` beyond. `reveal-mission` is **refused** unless
+  the outcome is `right`, so a wrong attempt can never strand the mission in
+  `observe`.
+- **Observe.** The model has answered; the panel says what to look at. The
+  prediction is still there and still says what the child said.
+- **Explain.** `explain-mission`, then `finish-mission` back to the activity's
+  sandbox with the instant and camera unchanged.
+
+`abandon-mission` works from every phase and loses nothing: it clears the
+mission and returns to the activity's sandbox with the camera, the instant, the
+observers and the settings exactly where the child left them. The saved
+pre-activity `sandboxView` is untouched, so `leave-activity` still goes all the
+way home.
+
+`state.phase` is `'mission'` while a mission runs and `state.mission` carries the
+mission phase; the two are set and cleared together. A mission starts only from
+the activity's sandbox — never from the guide, never on top of another mission.
+
 ## The instant
 
 `Instant` is epoch milliseconds, UTC — a plain number, never a `Date`, and it
@@ -123,3 +156,8 @@ instant outside the timeline that is showing it. Playback speed is
 - Do not cache positions on a frame counter. If you cache, cache on the instant.
 - Do not compute a derived quantity in a component; add a contributor and test
   it here.
+- Do not add an answer control (multiple choice, text field, radio, checkbox).
+  `src/lib/ui/no-form.test.ts` fails the suite if one appears; see its comment
+  for the exemption rule.
+- Do not let anything overwrite a recorded prediction, and do not let
+  `reveal-mission` through while the success predicate is not satisfied.

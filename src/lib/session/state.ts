@@ -64,7 +64,8 @@ export function createInitialState(options: InitialStateOptions = {}): SessionSt
 		timeSpan,
 		camera: DEFAULT_CAMERA,
 		activities: options.activities ?? discoveredActivities,
-		sandboxView: null
+		sandboxView: null,
+		mission: null
 	};
 }
 

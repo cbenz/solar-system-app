@@ -51,6 +51,17 @@ export const en = {
 	'activity.day-and-night.camera.close': 'Close up',
 	'activity.day-and-night.setting.rotation': 'Rotation speed',
 
+	'mission.phase.predict': 'Predict',
+	'mission.phase.manipulate': 'Try it',
+	'mission.phase.observe': 'Look',
+	'mission.phase.explain': 'Explain',
+	'mission.abandon': 'Leave this mission',
+	'mission.prediction.commit': 'This is what I think',
+	'mission.prediction.recorded': 'You said: {statement}',
+	'mission.look': 'Look at the model',
+	'mission.explain': 'What happened',
+	'mission.finish': 'Back to the sandbox',
+
 	'scale.distancesNotToScale': 'The distances between them are shortened so you can see everything.',
 	'scale.sizesNotToScale': 'The Earth, the Moon and the Sun are drawn bigger than they really are.'
 } as const;

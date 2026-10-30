@@ -58,6 +58,7 @@ export function handleOpenActivity(state: SessionState, event: SessionEvent): Se
 			// step, no mission running.
 			phase: 'sandbox',
 			guideStep: null,
+			mission: null,
 			instant: clampInstant(state.instant, timeSpan),
 			timeSpan,
 			subsystem: [...activity.subsystem],
@@ -88,6 +89,7 @@ export function handleOpenActivity(state: SessionState, event: SessionEvent): Se
 				activityId: null,
 				phase: 'sandbox',
 				guideStep: null,
+				mission: null,
 				timeSpan,
 				subsystem: [...DEFAULT_SUBSYSTEM],
 				sandboxView: null
@@ -100,6 +102,7 @@ export function handleOpenActivity(state: SessionState, event: SessionEvent): Se
 			activityId: null,
 			phase: 'sandbox',
 			guideStep: null,
+			mission: null,
 			instant: saved.instant,
 			camera: saved.camera,
 			timeSpan: saved.timeSpan,

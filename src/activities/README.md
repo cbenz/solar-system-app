@@ -38,6 +38,49 @@ export default defineActivity({
   `createInitialState({ activities: [...] })`; files under `__fixtures__/` are
   outside the production glob.
 
+## Declaring a mission
+
+A mission is a task on the model, never a form (ADR-0004). Each one declares its
+propositions and its success predicate as pure functions over the scene; the
+session owns the phases.
+
+```ts
+{
+  id: 'shortest-shadow',
+  label: 'mission.shadows.shortest.label',   // the toolbar button
+  brief: 'mission.shadows.shortest.brief',   // the standing sentence
+  prediction: {
+    prompt: 'mission.shadows.shortest.predict',
+    propositions: [
+      {
+        id: 'noon',
+        statement: 'mission.shadows.shortest.claim.noon',
+        // The child says this by leaving time at noon and committing.
+        holds: (scene) => Math.abs(scene.instant - noonInstant) <= HOUR
+      }
+    ]
+  },
+  success: {
+    kind: 'continuous',
+    measure: (scene) => scene.instant - noonInstant,
+    tolerance: 5 * MINUTE,
+    closeTolerance: HOUR
+  },
+  observe: 'mission.shadows.shortest.observe',
+  explain: 'mission.shadows.shortest.explain',
+  feedback: { close: 'mission.shadows.shortest.almost', right: 'mission.shadows.shortest.right' }
+}
+```
+
+- A predicate reads `MissionScene` only: instant, time span, camera, observers,
+  settings, the two scale toggles, the subsystem. It cannot read the mission
+  phase, which is what stops a predicate from depending on itself.
+- `discrete` answers yes or no; `continuous` reports a signed distance from the
+  target in the mission's units. `closeTolerance` must be at least `tolerance`.
+- At least one proposition must be expressible in the scene the mission offers,
+  or the mission can never leave the predict phase.
+- Every string is a `MessageKey`; add both locales.
+
 ## What the session does with it
 
 `open-activity` saves the sandbox view, narrows the subsystem, takes the

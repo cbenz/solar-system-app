@@ -12,7 +12,7 @@
 
 import type { MessageKey } from '$lib/i18n/messages';
 import { withSun, type Subsystem } from '$lib/session/subsystem';
-import type { BodyId, Instant } from '$lib/session/types';
+import type { BodyId, Instant, SessionState } from '$lib/session/types';
 
 /** The id a guide step uses to name a camera preset declared by its activity. */
 export type PresetId = string;
@@ -80,22 +80,92 @@ export type GuideStep = {
 };
 
 /**
+ * The part of the session state a mission predicate may read.
+ *
+ * It is the child-manipulable scene: the instant, the camera, the observers and
+ * the settings. A predicate that needs the mission's own phase or catalogue is a
+ * predicate that will lie, so the type does not offer them.
+ */
+export type MissionScene = Pick<
+	SessionState,
+	| 'instant'
+	| 'timeSpan'
+	| 'camera'
+	| 'observers'
+	| 'settings'
+	| 'trueDistance'
+	| 'trueSize'
+	| 'subsystem'
+>;
+
+/**
+ * One claim a child can make about the model, expressed by producing it.
+ *
+ * There is no option row: the child moves time, moves a body or changes a
+ * setting until the scene holds this claim, then commits. `holds` is what makes
+ * the scene state the proposition; `statement` is the claim played back in the
+ * child's words, before and after the reveal.
+ */
+export type PredictionProposition = {
+	id: string;
+	statement: MessageKey;
+	holds: (scene: MissionScene) => boolean;
+};
+
+/**
+ * The predict step: the child states a claim by producing a scene state.
+ *
+ * The session records the first proposition whose `holds` is true at the moment
+ * the child commits. At least one proposition must be expressible in the scene
+ * the mission offers, or the mission can never leave the predict phase.
+ */
+export type PredictionSpec = {
+	prompt: MessageKey;
+	propositions: readonly PredictionProposition[];
+};
+
+/**
+ * Has the child produced the phenomenon? Never "did they guess the right words".
+ *
+ * `discrete` tasks answer yes or no. `continuous` tasks report how far the scene
+ * is from the target: `|measure| <= tolerance` is `right`, and everything up to
+ * and including `closeTolerance` beyond that is `close`, the band the child can
+ * correct from. `closeTolerance` must be at least `tolerance`.
+ */
+export type SuccessSpec =
+	| {
+			kind: 'discrete';
+			holds: (scene: MissionScene) => boolean;
+	  }
+	| {
+			kind: 'continuous';
+			/** Distance from the target in the mission's own units, e.g. milliseconds. */
+			measure: (scene: MissionScene) => number;
+			tolerance: number;
+			closeTolerance: number;
+	  };
+
+/**
  * A task the child performs on the model, never in a form (ADR-0004).
  *
- * The target is a state of the model the scene can recognise: an instant, an
- * observer's latitude, or a camera preset. Ticket 09 fills the missions; the
- * type exists now so activity modules can declare them without falling back to
- * `any`.
+ * A mission runs predict → manipulate → observe → explain. The prediction is a
+ * scene state the child produces and the session records; the answer is the
+ * scene the model shows once the success predicate is satisfied. No field here
+ * names an answer to pick, because there is nothing to pick.
  */
 export type MissionSpec = {
 	id: string;
-	prompt: MessageKey;
-	prediction: MessageKey;
-	target:
-		| { kind: 'instant'; instant: Instant; toleranceMs: number }
-		| { kind: 'observer'; povId: string; latitudeDeg: number; toleranceDeg: number }
-		| { kind: 'camera'; preset: PresetId };
-	/** Feedback shown for a close attempt and for a right one, never a verdict. */
+	/** Short name for the mission's button in the activity toolbar. */
+	label: MessageKey;
+	/** The standing sentence: what the child is asked to do, in every phase. */
+	brief: MessageKey;
+	prediction: PredictionSpec;
+	success: SuccessSpec;
+	/** What to look at once the model answers: the scene, never a verdict. */
+	observe: MessageKey;
+	/** What the mission was about, once the child has seen the answer. */
+	explain: MessageKey;
+	/** Words for a close attempt and for the answer, never a score. */
 	feedback: {
 		close: MessageKey;
 		right: MessageKey;

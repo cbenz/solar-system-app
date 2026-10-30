@@ -13,6 +13,17 @@ export {
 } from './state';
 export type { InitialStateOptions } from './state';
 export { buildScene } from './scene';
+export {
+	MISSION_PHASES,
+	currentMission,
+	evaluateSuccess,
+	graded,
+	isSatisfied,
+	matchPrediction,
+	missionOf,
+	promptFor,
+	sceneMission
+} from './missions';
 export { FIRST_POV_ID, MAX_OBSERVERS, placementTargetId } from './handlers/place-observer';
 export { pickLatitude, type LatitudePick, type PickedLatitude } from './pick';
 export { POLAR_CIRCLE_DEG, placeName } from './places';
@@ -110,10 +121,14 @@ export type {
 	BodyId,
 	CameraState,
 	Instant,
+	MissionPhase,
+	MissionProgress,
 	Observer,
+	RecordedPrediction,
 	SandboxView,
-	SceneMarker,
 	SceneBody,
+	SceneMarker,
+	SceneMission,
 	SceneMoon,
 	SceneObserver,
 	SceneSnapshot,
@@ -122,6 +137,8 @@ export type {
 	SessionPhase,
 	SessionResult,
 	SessionState,
+	SuccessOutcome,
+	SuccessState,
 	TimeSpan,
 	Vec3
 } from './types';
