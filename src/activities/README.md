@@ -79,6 +79,9 @@ session owns the phases.
   target in the mission's units. `closeTolerance` must be at least `tolerance`.
 - At least one proposition must be expressible in the scene the mission offers,
   or the mission can never leave the predict phase.
+- An optional `motif` reads the scene and returns a pictogram for the brief
+  (`sun-high`, `sun-on-horizon`, `sun-below`), so a child who does not read yet
+  can still see what the scene is doing. Missions without one render as before.
 - Every string is a `MessageKey`; add both locales.
 
 ## What the session does with it

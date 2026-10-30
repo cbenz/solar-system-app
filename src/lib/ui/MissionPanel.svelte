@@ -45,7 +45,22 @@
 			<span class="name">{translate(locale, mission.label)}</span>
 		</header>
 
-		<p class="brief">{translate(locale, mission.brief)}</p>
+		<div class="brief-row">
+			{#if mission.motif !== null}
+				<!-- The brief's picture, derived from the scene: no words needed to read it. -->
+				<svg class="motif" viewBox="0 0 48 36" aria-hidden="true">
+					<line class="horizon" x1="2" y1="24" x2="46" y2="24" />
+					{#if mission.motif === 'sun-high'}
+						<circle class="sun" cx="24" cy="8" r="5" />
+					{:else if mission.motif === 'sun-on-horizon'}
+						<circle class="sun" cx="24" cy="24" r="5" />
+					{:else}
+						<circle class="sun" cx="24" cy="34" r="5" />
+					{/if}
+				</svg>
+			{/if}
+			<p class="brief">{translate(locale, mission.brief)}</p>
+		</div>
 
 		<!-- In the manipulate phase the prompt is the brief; say it once. -->
 		{#if mission.prompt !== mission.brief}
@@ -130,8 +145,30 @@
 		margin: 0;
 	}
 
+	.brief-row {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+	}
+
 	.brief {
 		font-weight: 600;
+	}
+
+	.motif {
+		flex: none;
+		width: 2.6rem;
+		height: auto;
+	}
+
+	.motif .horizon {
+		stroke: rgb(255 255 255 / 0.65);
+		stroke-width: 2;
+		stroke-linecap: round;
+	}
+
+	.motif .sun {
+		fill: #fde68a;
 	}
 
 	.prompt {

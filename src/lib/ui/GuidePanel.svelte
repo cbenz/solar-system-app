@@ -80,9 +80,13 @@
 				type="button"
 				class="next"
 				disabled={atEnd}
+				aria-label={translate(session.locale, started ? 'guide.next' : 'guide.start')}
 				onclick={() => dispatch({ type: 'next-guide-step' })}
 			>
-				{translate(session.locale, started ? 'guide.next' : 'guide.start')}
+				<!-- A chevron, not a word: the control stays readable without reading. -->
+				<svg class="chevron" viewBox="0 0 24 24" aria-hidden="true">
+					<path d="M9 5 L17 12 L9 19" />
+				</svg>
 			</button>
 
 			<button
@@ -161,6 +165,20 @@
 	.next {
 		border-color: rgb(125 211 252 / 0.7);
 		font-weight: 600;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0 0.75rem;
+	}
+
+	.chevron {
+		width: 1.5rem;
+		height: 1.5rem;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 2.5;
+		stroke-linecap: round;
+		stroke-linejoin: round;
 	}
 
 	.next:disabled {

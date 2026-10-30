@@ -66,8 +66,51 @@ export const fr: Record<MessageKey, string> = {
 	'activity.leave': "Quitter l'activité",
 	'activity.day-and-night.camera.overview': 'La Terre entière',
 	'activity.day-and-night.camera.side': 'De côté',
+	'activity.day-and-night.camera.terminator': 'Au-dessus du pôle',
 	'activity.day-and-night.camera.close': 'De près',
 	'activity.day-and-night.setting.rotation': 'Vitesse de rotation',
+	'activity.day-and-night.guide.noon':
+		'C’est midi là où tu es. Le Soleil est au plus haut de la journée.',
+	'activity.day-and-night.guide.sunset':
+		'Avance maintenant. Le Soleil descend et ton point glisse dans l’ombre.',
+	'activity.day-and-night.guide.midnight':
+		'De l’autre côté de minuit, ton point est dans le noir. La ligne entre le jour et la nuit traverse la Terre.',
+	'activity.day-and-night.guide.nextNoon': 'Un tour complet plus tard, il est de nouveau midi.',
+	'activity.day-and-night.guide.backToDark':
+		'Et voilà l’ombre qui revient. La nuit n’est jamais loin derrière.',
+
+	'mission.day-and-night.noon.label': 'Midi là où je suis',
+	'mission.day-and-night.noon.brief':
+		'Fais avancer le temps jusqu’à ce que le Soleil soit au plus haut là où tu es.',
+	'mission.day-and-night.noon.predict':
+		'Place le temps là où tu crois qu’il est midi, puis valide ton idée.',
+	'mission.day-and-night.noon.claim.before': 'Midi est encore à venir.',
+	'mission.day-and-night.noon.claim.now': 'C’est midi maintenant.',
+	'mission.day-and-night.noon.claim.after': 'Midi est déjà passé.',
+	'mission.day-and-night.noon.observe':
+		'Regarde le Soleil et ton point. Le Soleil est au plus haut, et ton point est à midi.',
+	'mission.day-and-night.noon.explain':
+		'Midi, c’est le moment où le Soleil est au plus haut, quand ton point lui fait face.',
+	'mission.day-and-night.noon.close': 'Presque. Avance un peu vers le point le plus haut du Soleil.',
+	'mission.day-and-night.noon.right':
+		'Le voilà : le Soleil au plus haut, et midi là où tu es.',
+
+	'mission.day-and-night.shadow.label': 'Dans l’ombre',
+	'mission.day-and-night.shadow.brief':
+		'Fais avancer le temps jusqu’à ce que ton point entre dans l’ombre.',
+	'mission.day-and-night.shadow.predict':
+		'Place le temps là où tu crois que le passage a lieu, puis valide ton idée.',
+	'mission.day-and-night.shadow.claim.before':
+		'Le passage a lieu avant que le Soleil atteigne son point le plus haut.',
+	'mission.day-and-night.shadow.claim.after':
+		'Le passage a lieu après que le Soleil a atteint son point le plus haut.',
+	'mission.day-and-night.shadow.observe':
+		'Regarde ton point. Il est sur la ligne entre le jour et la nuit.',
+	'mission.day-and-night.shadow.explain':
+		'Ton point entre dans l’ombre quand le Soleil se couche, et il en ressort quand le Soleil se lève.',
+	'mission.day-and-night.shadow.close':
+		'Presque. La ligne entre le jour et la nuit est tout près.',
+	'mission.day-and-night.shadow.right': 'Le voilà : ton point sur le bord de l’ombre.',
 
 	'activity.shadows.camera.ground': 'Au sol',
 	'activity.shadows.camera.top': 'Au-dessus du bâton',

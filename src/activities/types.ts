@@ -134,6 +134,13 @@ export type PredictionSpec = {
 };
 
 /**
+ * A pictogram the mission panel can show beside the brief, so a child who does
+ * not read yet can still see what the scene is doing. It is derived from the
+ * scene, never stored: the Sun high, on the horizon, or below it.
+ */
+export type MissionMotif = 'sun-high' | 'sun-on-horizon' | 'sun-below';
+
+/**
  * Has the child produced the phenomenon? Never "did they guess the right words".
  *
  * `discrete` tasks answer yes or no. `continuous` tasks report how far the scene
@@ -168,6 +175,11 @@ export type MissionSpec = {
 	label: MessageKey;
 	/** The standing sentence: what the child is asked to do, in every phase. */
 	brief: MessageKey;
+	/**
+	 * The brief's picture, read from the scene as the child moves it. Optional:
+	 * a mission whose target is not a Sun position leaves it out.
+	 */
+	motif?: (scene: MissionScene) => MissionMotif;
 	prediction: PredictionSpec;
 	success: SuccessSpec;
 	/** What to look at once the model answers: the scene, never a verdict. */

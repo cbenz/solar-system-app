@@ -69,8 +69,48 @@ export const en = {
 	'activity.leave': 'Leave activity',
 	'activity.day-and-night.camera.overview': 'Whole Earth',
 	'activity.day-and-night.camera.side': 'From the side',
+	'activity.day-and-night.camera.terminator': 'Above the pole',
 	'activity.day-and-night.camera.close': 'Close up',
 	'activity.day-and-night.setting.rotation': 'Rotation speed',
+	'activity.day-and-night.guide.noon':
+		'This is noon where you stand. The Sun is as high as it gets today.',
+	'activity.day-and-night.guide.sunset':
+		'Now run forward. The Sun drops, and your dot slides into the shadow.',
+	'activity.day-and-night.guide.midnight':
+		'This is the other side of midnight. Your dot is in the dark, and the line between day and night crosses the Earth.',
+	'activity.day-and-night.guide.nextNoon': 'A whole turn later, it is noon again.',
+	'activity.day-and-night.guide.backToDark':
+		'And here comes the shadow again. Night is never far behind.',
+
+	'mission.day-and-night.noon.label': 'Noon where I am',
+	'mission.day-and-night.noon.brief': 'Move time until the Sun reaches its highest point where you are.',
+	'mission.day-and-night.noon.predict':
+		'Leave time where you think noon is, then lock in your guess.',
+	'mission.day-and-night.noon.claim.before': 'Noon is still to come.',
+	'mission.day-and-night.noon.claim.now': 'It is noon right now.',
+	'mission.day-and-night.noon.claim.after': 'Noon has already passed.',
+	'mission.day-and-night.noon.observe':
+		'Look at the Sun and at your dot. The Sun is at its height, and your dot sits at noon.',
+	'mission.day-and-night.noon.explain':
+		'Noon is the moment the Sun is highest, when your dot faces it straight on.',
+	'mission.day-and-night.noon.close':
+		'Almost. Move a little closer to the Sun’s highest point.',
+	'mission.day-and-night.noon.right': 'There it is: the Sun at its height, and noon where you stand.',
+
+	'mission.day-and-night.shadow.label': 'Into the shadow',
+	'mission.day-and-night.shadow.brief': 'Move time until your dot crosses into the shadow.',
+	'mission.day-and-night.shadow.predict':
+		'Leave time where you think the crossing happens, then lock in your guess.',
+	'mission.day-and-night.shadow.claim.before':
+		'The crossing comes before the Sun reaches its height.',
+	'mission.day-and-night.shadow.claim.after':
+		'The crossing comes after the Sun reaches its height.',
+	'mission.day-and-night.shadow.observe':
+		'Look at your dot. It is on the line between day and night.',
+	'mission.day-and-night.shadow.explain':
+		'Your dot crosses into the shadow when the Sun sets, and back out when it rises.',
+	'mission.day-and-night.shadow.close': 'Almost. The line between day and night is close.',
+	'mission.day-and-night.shadow.right': 'There it is: your dot on the edge of the shadow.',
 
 	'activity.shadows.camera.ground': 'At the ground',
 	'activity.shadows.camera.top': 'Above the stick',
