@@ -78,7 +78,19 @@ export type SessionState = {
 	timeSpan: TimeSpan;
 };
 
-export type SceneBody = { id: BodyId; position: Vec3 };
+/**
+ * A body in the scene. `position` is heliocentric and true; the two factors are
+ * the scale the renderer applies (`scale.ts`). Distances are distorted by
+ * default, so every renderer multiplies rather than deciding for itself.
+ */
+export type SceneBody = {
+	id: BodyId;
+	position: Vec3;
+	/** Multiplies the body's offset from its primary (see `primaryOf`). */
+	distanceFactor: number;
+	/** Multiplies the body's true radius when it is drawn. */
+	radiusFactor: number;
+};
 
 export type SceneObserver = {
 	observer: Observer;
