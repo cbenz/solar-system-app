@@ -18,6 +18,7 @@
 import type { Locale } from '$lib/i18n/locale';
 import type { MessageKey } from '$lib/i18n/messages';
 import type { Activity, MissionMotif } from '../../activities/types';
+import type { SeasonScene } from './season-scene';
 import type { ShadowGeometry } from './shadow';
 
 /**
@@ -302,6 +303,8 @@ export type SceneSnapshot = {
 	circles: SceneCircle[];
 	camera: CameraState;
 	mission: SceneMission | null;
+	/** The seasons activity's rays, drawn orbit and distance readout; null elsewhere. */
+	season: SeasonScene | null;
 };
 
 /**

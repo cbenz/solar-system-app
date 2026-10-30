@@ -25,12 +25,14 @@
 	} from '$lib/session';
 	import ObserverLabels from '$lib/ui/ObserverLabels.svelte';
 	import ActivityToolbar from '$lib/ui/ActivityToolbar.svelte';
+	import ActivitySettings from '$lib/ui/ActivitySettings.svelte';
 	import MissionPanel from '$lib/ui/MissionPanel.svelte';
 	import BodyPropertiesCard from '$lib/ui/BodyPropertiesCard.svelte';
 	import SandboxToolbar from '$lib/ui/SandboxToolbar.svelte';
 	import GuidePanel from '$lib/ui/GuidePanel.svelte';
 	import PovDock from '$lib/ui/PovDock.svelte';
 	import ScaleBanner from '$lib/ui/ScaleBanner.svelte';
+	import SeasonBanner from '$lib/ui/SeasonBanner.svelte';
 	import Timeline from '$lib/ui/Timeline.svelte';
 
 	// The device language decides the first screen (ADR-0006); switching is an event.
@@ -107,12 +109,14 @@
 <div class="scene" bind:this={host}></div>
 <ObserverLabels entries={snapshot.observers} positions={labelPositions} locale={session.locale} />
 <ActivityToolbar session={session} {dispatch} />
+<ActivitySettings session={session} {dispatch} />
 <MissionPanel mission={snapshot.mission} locale={session.locale} {dispatch} />
 <SandboxToolbar session={session} {dispatch} />
 <BodyPropertiesCard session={session} {dispatch} />
 <GuidePanel session={session} {dispatch} />
 <PovDock observers={snapshot.observers} locale={session.locale} />
 <ScaleBanner session={session} {dispatch} />
+<SeasonBanner season={snapshot.season} locale={session.locale} />
 <Timeline session={session} {dispatch} />
 <LanguageSwitch locale={session.locale} onSelect={(locale) => dispatch({ type: 'set-locale', locale })} />
 

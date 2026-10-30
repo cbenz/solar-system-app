@@ -165,10 +165,16 @@ export function obliquityDeg(): number {
 	return OBLIQUITY_DEG;
 }
 
-/** The Sun's declination `δ = asin(sin ε · sin λ☉)`, in degrees. */
-export function solarDeclinationDeg(instant: Instant): number {
+/**
+ * The Sun's declination `δ = asin(sin ε · sin λ☉)`, in degrees.
+ *
+ * `tiltDeg` defaults to the model's obliquity, so every existing caller is
+ * unchanged; the seasons activity passes its slider value (ticket 13).
+ */
+export function solarDeclinationDeg(instant: Instant, tiltDeg: number = OBLIQUITY_DEG): number {
 	const longitude = sunLongitudeDeg(instant) * DEG;
-	return Math.asin(Math.sin(OBLIQUITY_DEG * DEG) * Math.sin(longitude)) * RAD;
+	const epsilon = Math.min(90, Math.max(0, tiltDeg)) * DEG;
+	return Math.asin(Math.sin(epsilon) * Math.sin(longitude)) * RAD;
 }
 
 /** Greenwich mean sidereal time, in degrees (§3.1, Meeus ch. 12). */
