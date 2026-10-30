@@ -1,12 +1,12 @@
 <script lang="ts">
 	/**
-	 * The scale banner: which distortion is active, and the two switches
-	 * (ADR-0003).
+	 * The settings banner: which distortion is active, the two scale switches
+	 * (ADR-0003) and the visibility limit (ticket 16).
 	 *
 	 * Dumb renderer. The session decides which sentence to show
-	 * (`distortionNotice`) and owns both switches; this component only resolves
-	 * the message keys through `t()` and dispatches the toggles. It covers no
-	 * part of the scene the child might want to touch: the container ignores
+	 * (`distortionNotice`) and owns every switch; this component only resolves
+	 * the message keys through `t()` and dispatches the settings events. It covers
+	 * no part of the scene the child might want to touch: the container ignores
 	 * pointer events, only the switches take them.
 	 */
 	import { translate } from '$lib/i18n/translate';
@@ -21,9 +21,15 @@
 
 	// The keys come from the session; the words come from the catalogue.
 	const notice = $derived(distortionNotice(session));
+	const visibilityLimit = $derived(session.settings.visibilityLimit === true);
 	const switches = $derived([
 		{ pressed: session.trueDistance, label: 'term.true-distance' as const, event: { type: 'toggle-true-distance' as const } },
-		{ pressed: session.trueSize, label: 'term.true-size' as const, event: { type: 'toggle-true-size' as const } }
+		{ pressed: session.trueSize, label: 'term.true-size' as const, event: { type: 'toggle-true-size' as const } },
+		{
+			pressed: visibilityLimit,
+			label: 'term.visibility-limit' as const,
+			event: { type: 'set-setting' as const, key: 'visibilityLimit', value: !visibilityLimit }
+		}
 	]);
 </script>
 
