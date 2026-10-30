@@ -57,6 +57,7 @@ export function createInitialState(options: InitialStateOptions = {}): SessionSt
 		],
 		settings: {
 			playbackSpeed: DEFAULT_PLAYBACK_SPEED,
+			visibilityLimit: false,
 			...(options.settings ?? {})
 		},
 		timeSpan,

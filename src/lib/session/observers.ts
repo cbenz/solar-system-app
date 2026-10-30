@@ -19,6 +19,7 @@ import {
 	earthHeliocentricPositionAu,
 	greenwichSiderealTimeDeg,
 	moonHeliocentricPositionAu,
+	length,
 	normalizeDeg,
 	obliquityDeg,
 	solarDeclinationDeg,
@@ -96,15 +97,19 @@ export function isDaylight(observer: Observer, instant: Instant): boolean {
 	return dot(observerNormal(observer, instant), sunDirection(instant)) > 0;
 }
 
-/** The Sun's azimuth, measured clockwise from north (ASTRONOMY.md §3.5). */
-export function sunAzimuthDeg(observer: Observer, instant: Instant): number {
-	const latitude = observer.latitudeDeg * DEG;
-	const declination = solarDeclinationDeg(instant) * DEG;
-	const hourAngle =
-		(greenwichSiderealTimeDeg(instant) +
-			(observer.longitudeDeg ?? 0) -
-			sunRightAscensionDeg(instant)) *
-		DEG;
+/**
+ * Azimuth from a declination and an hour angle, clockwise from north
+ * (ASTRONOMY.md §3.5). The one place the horizon frame is built, so the Sun
+ * and every other body share it.
+ */
+function azimuthFromHourAngleDeg(
+	latitudeDeg: number,
+	declinationDeg: number,
+	hourAngleDeg: number
+): number {
+	const latitude = latitudeDeg * DEG;
+	const declination = declinationDeg * DEG;
+	const hourAngle = hourAngleDeg * DEG;
 
 	const east = -Math.cos(declination) * Math.sin(hourAngle);
 	const north =
@@ -112,6 +117,15 @@ export function sunAzimuthDeg(observer: Observer, instant: Instant): number {
 		Math.cos(declination) * Math.sin(latitude) * Math.cos(hourAngle);
 
 	return normalizeDeg(Math.atan2(east, north) * RAD);
+}
+
+/** The Sun's azimuth, measured clockwise from north (ASTRONOMY.md §3.5). */
+export function sunAzimuthDeg(observer: Observer, instant: Instant): number {
+	return azimuthFromHourAngleDeg(
+		observer.latitudeDeg,
+		solarDeclinationDeg(instant),
+		greenwichSiderealTimeDeg(instant) + (observer.longitudeDeg ?? 0) - sunRightAscensionDeg(instant)
+	);
 }
 
 /** The Sun's apparent right ascension, in degrees. */
@@ -125,4 +139,42 @@ function sunRightAscensionDeg(instant: Instant): number {
 export function elevationOfPointDeg(observer: Observer, pointAu: Vec3, instant: Instant): number {
 	const direction = unit(subtract(pointAu, observerPositionAu(observer, instant)));
 	return Math.asin(Math.min(Math.max(dot(observerNormal(observer, instant), direction), -1), 1)) * RAD;
+}
+
+/**
+ * Equatorial right ascension and declination of an ecliptic direction, in
+ * degrees. The inverse of `observerNormal`'s tilt about the `x` axis.
+ */
+function equatorialOf(direction: Vec3): { rightAscensionDeg: number; declinationDeg: number } {
+	const epsilon = obliquityDeg() * DEG;
+	const y = direction.y * Math.cos(epsilon) - direction.z * Math.sin(epsilon);
+	const z = direction.y * Math.sin(epsilon) + direction.z * Math.cos(epsilon);
+
+	return {
+		rightAscensionDeg: normalizeDeg(Math.atan2(y, direction.x) * RAD),
+		declinationDeg: Math.asin(Math.min(Math.max(z / length(direction), -1), 1)) * RAD
+	};
+}
+
+/**
+ * Altitude and azimuth of any point, for the POV panel. The same rotation
+ * `sunElevationDeg` and `sunAzimuthDeg` use, so the night sky and the Sun
+ * cannot disagree about where the horizon is.
+ */
+export function pointAltitudeAzimuthDeg(
+	observer: Observer,
+	pointAu: Vec3,
+	instant: Instant
+): { altitudeDeg: number; azimuthDeg: number } {
+	const direction = unit(subtract(pointAu, observerPositionAu(observer, instant)));
+	const { rightAscensionDeg, declinationDeg } = equatorialOf(direction);
+
+	return {
+		altitudeDeg: elevationOfPointDeg(observer, pointAu, instant),
+		azimuthDeg: azimuthFromHourAngleDeg(
+			observer.latitudeDeg,
+			declinationDeg,
+			greenwichSiderealTimeDeg(instant) + (observer.longitudeDeg ?? 0) - rightAscensionDeg
+		)
+	};
 }

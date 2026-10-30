@@ -10,9 +10,9 @@
 import { handleCamera } from './handlers/camera';
 import { handleOpenActivity } from './handlers/open-activity';
 import { handlePlaceObserver } from './handlers/place-observer';
+import { handleSetSetting } from './handlers/set-setting';
 import { handleScrubTo } from './handlers/scrub-to';
 import { handleSetLocale } from './handlers/set-locale';
-import { handleSetSetting } from './handlers/set-setting';
 import { handleToggleScale } from './handlers/toggle-scale';
 import { buildScene } from './scene';
 import { reconcileTimeSpan } from './state';
