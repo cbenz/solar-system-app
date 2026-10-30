@@ -67,6 +67,22 @@ export function createScene(host: HTMLElement): SceneHandle {
 	const sun = new THREE.Mesh(sunGeometry, sunMaterial);
 	scene.add(sun);
 
+	// Observer dots. The snapshot carries each observer's surface normal in the
+	// ecliptic frame — the same normal that decides sunlight — so a dot crosses
+	// the terminator at exactly the instant its POV goes dark.
+	const observerGeometry = new THREE.SphereGeometry(EARTH_RADIUS * 0.025, 16, 12);
+	const observerMaterials = new Map<string, THREE.MeshBasicMaterial>();
+	const observerDots = new Map<string, THREE.Mesh>();
+
+	function observerMaterial(colour: string): THREE.MeshBasicMaterial {
+		const cached = observerMaterials.get(colour);
+		if (cached !== undefined) return cached;
+
+		const material = new THREE.MeshBasicMaterial({ color: colour });
+		observerMaterials.set(colour, material);
+		return material;
+	}
+
 	// Light comes from the Sun's real position and nowhere else (ADR-0002,
 	// ADR-0004). The distance factors move the Sun, never the light's source.
 	const sunlight = new THREE.DirectionalLight(0xffffff, 2.4);
@@ -119,6 +135,33 @@ export function createScene(host: HTMLElement): SceneHandle {
 		const sunBody = snapshot.bodies.find((body) => body.id === 'sun');
 		sun.visible = sunBody !== undefined;
 		if (sunBody !== undefined) sun.scale.setScalar(drawnRadius(sunBody));
+
+		const present = new Set<string>();
+		for (const entry of snapshot.observers) {
+			const { id, colour } = entry.observer;
+			present.add(id);
+
+			let dot = observerDots.get(id);
+			if (dot === undefined) {
+				dot = new THREE.Mesh(observerGeometry, observerMaterial(colour));
+				observerDots.set(id, dot);
+				scene.add(dot);
+			}
+
+			dot.material = observerMaterial(colour);
+			const normal = entry.surfaceNormal;
+			dot.position.set(
+				normal.x * EARTH_RADIUS * 1.01,
+				normal.y * EARTH_RADIUS * 1.01,
+				normal.z * EARTH_RADIUS * 1.01
+			);
+		}
+
+		for (const [id, dot] of observerDots) {
+			if (present.has(id)) continue;
+			scene.remove(dot);
+			observerDots.delete(id);
+		}
 	}
 
 	// --- Gestures -----------------------------------------------------------
@@ -257,11 +300,16 @@ export function createScene(host: HTMLElement): SceneHandle {
 			scene.remove(earth);
 			scene.remove(sun);
 			scene.remove(stars);
+			for (const dot of observerDots.values()) scene.remove(dot);
+			observerDots.clear();
 			earthGeometry.dispose();
 			earthMaterial.dispose();
 			earthTexture.dispose();
 			sunGeometry.dispose();
 			sunMaterial.dispose();
+			observerGeometry.dispose();
+			for (const material of observerMaterials.values()) material.dispose();
+			observerMaterials.clear();
 
 			const starMaterial = stars.material;
 			if (Array.isArray(starMaterial)) {

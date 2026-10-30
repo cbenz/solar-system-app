@@ -7,6 +7,7 @@
  * `SESSION_HANDLERS`. Nothing else in this file changes.
  */
 
+import { handlePlaceObserver } from './handlers/place-observer';
 import { handleScrubTo } from './handlers/scrub-to';
 import { handleSetLocale } from './handlers/set-locale';
 import { handleToggleScale } from './handlers/toggle-scale';
@@ -19,6 +20,7 @@ export type SessionHandler = (state: SessionState, event: SessionEvent) => Sessi
 
 export const SESSION_HANDLERS: readonly SessionHandler[] = [
 	handleScrubTo,
+	handlePlaceObserver,
 	handleSetLocale,
 	handleToggleScale
 ];

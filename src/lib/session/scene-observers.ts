@@ -7,7 +7,14 @@
  * visibility-limit pass that narrows `visibleBodies` — without editing this one.
  */
 
-import { bodyCenterAu, elevationOfPointDeg, isDaylight, sunElevationDeg } from './observers';
+import {
+	bodyCenterAu,
+	elevationOfPointDeg,
+	isDaylight,
+	observerNormal,
+	sunAzimuthDeg,
+	sunElevationDeg
+} from './observers';
 import type { BodyId, SceneObserver, SessionState } from './types';
 
 export type ObserverContributor = (state: SessionState) => SceneObserver[];
@@ -27,7 +34,9 @@ export const OBSERVER_CONTRIBUTORS: readonly ObserverContributor[] = [
 			observer,
 			sunElevationDeg:
 				observer.bodyId === 'earth' ? sunElevationDeg(observer, state.instant) : 0,
+			sunAzimuthDeg: observer.bodyId === 'earth' ? sunAzimuthDeg(observer, state.instant) : 0,
 			daylight: observer.bodyId === 'earth' ? isDaylight(observer, state.instant) : false,
+			surfaceNormal: observerNormal(observer, state.instant),
 			visibleBodies: visibleBodies(state, observer)
 		}))
 ];

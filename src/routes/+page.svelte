@@ -13,9 +13,11 @@
 		applyEvent,
 		buildScene,
 		createInitialState,
+		type SceneSnapshot,
 		type SessionEvent,
 		type SessionState
 	} from '$lib/session';
+	import PovDock from '$lib/ui/PovDock.svelte';
 	import ScaleBanner from '$lib/ui/ScaleBanner.svelte';
 	import Timeline from '$lib/ui/Timeline.svelte';
 
@@ -25,6 +27,7 @@
 	let host: HTMLDivElement;
 	let scene: SceneHandle | null = null;
 	let state = $state<SessionState>(createInitialState({ locale: resolveLocale(deviceLanguage) }));
+	const snapshot = $derived<SceneSnapshot>(buildScene(state));
 
 	function dispatch(event: SessionEvent): void {
 		const result = applyEvent(state, event);
@@ -48,6 +51,7 @@
 </svelte:head>
 
 <div class="scene" bind:this={host}></div>
+<PovDock observers={snapshot.observers} />
 <ScaleBanner session={state} {dispatch} />
 <Timeline session={state} {dispatch} />
 <LanguageSwitch locale={state.locale} onSelect={(locale) => dispatch({ type: 'set-locale', locale })} />
