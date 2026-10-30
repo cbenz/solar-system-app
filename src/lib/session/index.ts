@@ -30,6 +30,7 @@ export { POLAR_CIRCLE_DEG, placeName } from './places';
 export { markersFor } from './scene-markers';
 export { TILT_SETTING_KEY, applyGuideStep, currentGuideStep, guideFor, nextGuideStep } from './guide';
 export { observersFromPovs } from './povs';
+export { EQUATOR_CIRCLE_ID, circlesFor } from './circles';
 export {
 	DEFAULT_CAMERA,
 	cameraForPreset,
@@ -177,6 +178,7 @@ export type {
 	SceneBody,
 	SceneMarker,
 	SceneMission,
+	SceneCircle,
 	SceneMoon,
 	SceneObserver,
 	SceneSnapshot,

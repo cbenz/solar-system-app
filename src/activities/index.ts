@@ -38,6 +38,7 @@ export type {
 	ActivityDeclaration,
 	CameraPreset,
 	GuideStep,
+	LatitudeCircleSpec,
 	Level,
 	MissionSpec,
 	PovSpec,

@@ -8,6 +8,7 @@ import { withNightSky } from './night-sky';
 import { BODY_CONTRIBUTORS } from './scene-bodies';
 import { OBSERVER_CONTRIBUTORS } from './scene-observers';
 import { markersFor } from './scene-markers';
+import { circlesFor } from './circles';
 import type { SceneSnapshot, SessionState } from './types';
 
 export function buildScene(state: SessionState): SceneSnapshot {
@@ -25,6 +26,7 @@ export function buildScene(state: SessionState): SceneSnapshot {
 		bodies,
 		observers,
 		markers: markersFor(state),
+		circles: circlesFor(state),
 		camera: state.camera,
 		mission: sceneMission(state)
 	};

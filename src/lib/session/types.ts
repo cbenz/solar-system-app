@@ -252,6 +252,17 @@ export type SceneObserver = {
 };
 
 /**
+ * A latitude circle to draw on the Earth. The Equator is always present; an
+ * activity adds the circles its phenomenon needs (ticket 11). The renderer
+ * chooses the colour from `kind`.
+ */
+export type SceneCircle = {
+	id: string;
+	latitudeDeg: number;
+	kind: 'equator' | 'activity';
+};
+
+/**
  * Where to draw an activity marker. The marker belongs to a body, not to a
  * coordinate: the renderer puts it around whichever body the snapshot draws.
  */
@@ -283,6 +294,7 @@ export type SceneSnapshot = {
 	bodies: SceneBody[];
 	observers: SceneObserver[];
 	markers: SceneMarker[];
+	circles: SceneCircle[];
 	camera: CameraState;
 	mission: SceneMission | null;
 };

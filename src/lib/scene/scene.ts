@@ -8,11 +8,12 @@ import {
 	type CameraState,
 	type Observer,
 	type SceneBody,
+	type SceneCircle,
 	type SceneMarker,
 	type SceneSnapshot,
 	type Vec3
 } from '$lib/session';
-import { circlePoints, CIRCLE_RADIUS_FACTOR, DEFAULT_CIRCLES, type CircleSpec } from './circles';
+import { circlePoints, CIRCLE_RADIUS_FACTOR } from './circles';
 import { createEarthTexture } from './earth-texture';
 import { createStarfield } from './starfield';
 import {
@@ -66,11 +67,6 @@ export type SceneOptions = {
 	onCameraChange?: (requested: CameraState) => void;
 	/** Open an activity when its marker is tapped. */
 	onOpenActivity?: (activityId: string) => void;
-	/**
-	 * Latitude circles to draw. The Equator by default; ticket 11 passes the
-	 * Tropics and the Polar Circles through the same input.
-	 */
-	circles?: readonly CircleSpec[];
 	/** Called when a label's screen position or visibility changes. */
 	onLabelsChange?: (labels: ObserverLabelPosition[]) => void;
 	/** Called when a pointer gesture asks for an observer to be placed or moved. */
@@ -153,24 +149,75 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 	const trackLines = new Map<BodyId, THREE.Line>();
 
 	// Latitude circles: line loops on the sphere, slightly outside it so they do
-	// not z-fight with the surface. The Equator is always drawn (ticket 06);
-	// ticket 11 adds the rest through `options.circles`.
-	const circleGeometries: THREE.BufferGeometry[] = [];
-	const circleMaterials: THREE.LineBasicMaterial[] = [];
-	for (const spec of options.circles ?? DEFAULT_CIRCLES) {
-		const points = circlePoints(spec.latitudeDeg, EARTH_RADIUS * CIRCLE_RADIUS_FACTOR).map(
-			(point) => new THREE.Vector3(point.x, point.y, point.z)
-		);
-		const geometry = new THREE.BufferGeometry().setFromPoints(points);
-		const material = new THREE.LineBasicMaterial({
-			color: spec.colour,
-			transparent: true,
-			opacity: spec.opacity,
-			depthWrite: false
-		});
-		surface.add(new THREE.LineLoop(geometry, material));
-		circleGeometries.push(geometry);
-		circleMaterials.push(material);
+	// not z-fight with the surface. The snapshot says which ones a session draws
+	// (the Equator always; ticket 11's activity adds the Tropics and Polar
+	// Circles), so opening or leaving an activity adds and drops them here.
+	const circleLines = new Map<string, THREE.LineLoop>();
+	const circleGeometries = new Set<THREE.BufferGeometry>();
+	const circleMaterials = new Set<THREE.LineBasicMaterial>();
+
+	function circleStyle(kind: SceneCircle['kind']): { colour: number; opacity: number } {
+		return kind === 'equator'
+			? { colour: 0xffffff, opacity: 0.55 }
+			: { colour: 0xf5c86b, opacity: 0.5 };
+	}
+
+	function syncCircles(circles: readonly SceneCircle[]): void {
+		const present = new Set<string>();
+
+		for (const circle of circles) {
+			present.add(circle.id);
+			let line = circleLines.get(circle.id);
+			const geometry = line?.geometry as THREE.BufferGeometry | undefined;
+			const latitude = line?.userData.latitudeDeg as number | undefined;
+
+			if (line !== undefined && geometry !== undefined && latitude === circle.latitudeDeg) continue;
+
+			const points = circlePoints(circle.latitudeDeg, EARTH_RADIUS * CIRCLE_RADIUS_FACTOR).map(
+				(point) => new THREE.Vector3(point.x, point.y, point.z)
+			);
+
+			if (line !== undefined) {
+				// Same id, new latitude (a future tilt slider): swap the geometry.
+				const next = new THREE.BufferGeometry().setFromPoints(points);
+				line.geometry = next;
+				line.userData.latitudeDeg = circle.latitudeDeg;
+				if (geometry !== undefined) {
+					circleGeometries.delete(geometry);
+					geometry.dispose();
+				}
+				circleGeometries.add(next);
+				continue;
+			}
+
+			const created = new THREE.BufferGeometry().setFromPoints(points);
+			const style = circleStyle(circle.kind);
+			const material = new THREE.LineBasicMaterial({
+				color: style.colour,
+				transparent: true,
+				opacity: style.opacity,
+				depthWrite: false
+			});
+			line = new THREE.LineLoop(created, material);
+			line.userData.latitudeDeg = circle.latitudeDeg;
+			circleLines.set(circle.id, line);
+			circleGeometries.add(created);
+			circleMaterials.add(material);
+			surface.add(line);
+		}
+
+		for (const [id, line] of circleLines) {
+			if (present.has(id)) continue;
+
+			surface.remove(line);
+			const geometry = line.geometry as THREE.BufferGeometry;
+			const material = line.material as THREE.LineBasicMaterial;
+			geometry.dispose();
+			material.dispose();
+			circleGeometries.delete(geometry);
+			circleMaterials.delete(material);
+			circleLines.delete(id);
+		}
 	}
 
 	// Observer dots. Only the latitude is stored, so the dot sits on the
@@ -289,6 +336,7 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 		updateRotation();
 
 		const earthBody = snapshot.bodies.find((body) => body.id === 'earth');
+		syncCircles(snapshot.circles);
 		if (earthBody === undefined) return;
 
 		// The Earth is the origin of the drawn frame. Every other body is drawn at
@@ -883,8 +931,9 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 			observerMaterials.clear();
 			for (const geometry of circleGeometries) geometry.dispose();
 			for (const material of circleMaterials) material.dispose();
-			circleGeometries.length = 0;
-			circleMaterials.length = 0;
+			circleGeometries.clear();
+			circleMaterials.clear();
+			circleLines.clear();
 			markerGeometry.dispose();
 			markerMaterial.dispose();
 
