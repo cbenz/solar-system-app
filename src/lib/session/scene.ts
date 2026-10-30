@@ -3,6 +3,7 @@
  * function of the instant, which is what makes scrubbing reversible.
  */
 
+import { withNightSky } from './night-sky';
 import { BODY_CONTRIBUTORS } from './scene-bodies';
 import { OBSERVER_CONTRIBUTORS } from './scene-observers';
 import type { SceneSnapshot, SessionState } from './types';
@@ -13,7 +14,10 @@ export function buildScene(state: SessionState): SceneSnapshot {
 		return body === null ? [] : [body];
 	});
 
-	const observers = OBSERVER_CONTRIBUTORS.flatMap((contributor) => contributor(state));
+	// The night-sky pass owns the visibility limit and the Moon per POV (ticket 16).
+	const observers = OBSERVER_CONTRIBUTORS.flatMap((contributor) => contributor(state)).map(
+		(entry) => withNightSky(entry, state)
+	);
 
 	return { bodies, observers };
 }

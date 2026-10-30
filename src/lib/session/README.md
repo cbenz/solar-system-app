@@ -24,6 +24,9 @@ concern. Do not grow a god-reducer; add a file and append it to a list.
 | `observers.ts` | the observer's surface normal, Sun elevation, azimuth and daylight — one dot product, one rotation function. |
 | `observer-colour.ts` | the fixed three-colour observer palette and its first-free assignment. |
 | `sky.ts` | `skyToScreen`: the POV panel's only geometry, a pure (altitude, azimuth) → pixel map. |
+| `moon.ts` | the Moon as the eye sees it: phase from the elongation, angular size, apparent magnitude. |
+| `visibility.ts` | the visibility limit's heuristic: `isAboveVisibilityLimit`, the limiting magnitude, the angular floor. |
+| `night-sky.ts` | `visibleBodiesFor` (narrowing by the limit), the Moon per POV, and the seeded decorative `starField`. |
 | `snap.ts` | the pure `snap(instant, snapPoints, ratio)` rule. |
 | `snap-points.ts` | which instants are worth snapping to, for a session state. |
 | `state.ts` | `createInitialState`, `reconcileTimeSpan` (span and instant normalisation). |
@@ -78,10 +81,15 @@ longitude for a staged observation without making it interactive.
 
 ## Adding a derived observer quantity
 
-Append a contributor to `OBSERVER_CONTRIBUTORS` in `scene-observers.ts`.
-Ticket 16's visibility limit is one such contributor. Keep `sunElevationDeg` and
-`daylight` derived from `observers.ts`'s single dot product: the terminator, the
-POV panel and the night sky must never disagree.
+Append a contributor to `OBSERVER_CONTRIBUTORS` in `scene-observers.ts`. Keep
+`sunElevationDeg` and `daylight` derived from `observers.ts`'s single dot
+product: the terminator, the POV panel and the night sky must never disagree.
+
+The **visibility limit** is not a contributor: it narrows a field another
+contributor already filled, so `scene.ts` maps every entry through
+`withNightSky` (in `night-sky.ts`) after the contributors have run. That pass
+owns `visibleBodies`, `visibilityLimit` and `moon`. It also has the `moon.ts`
+and `visibility.ts` modules behind it; a component draws, it does not decide.
 
 ## The instant
 

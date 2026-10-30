@@ -22,6 +22,34 @@ export type { BodyContributor } from './scene-bodies';
 export { OBSERVER_CONTRIBUTORS } from './scene-observers';
 export type { ObserverContributor } from './scene-observers';
 export {
+	NIGHT_SKY_SEED,
+	NIGHT_SKY_STAR_COUNT,
+	angularDiameterDegOf,
+	apparentMagnitudeOf,
+	moonFor,
+	starField,
+	visibilityLimitEnabled,
+	visibleBodiesFor,
+	withNightSky
+} from './night-sky';
+export type { SkyStar } from './night-sky';
+export {
+	MOON_RADIUS_KM,
+	moonAngularDiameterDeg,
+	moonApparentMagnitude,
+	moonDistanceKm,
+	moonPhase,
+	shortestAngleDeg
+} from './moon';
+export type { MoonPhase } from './moon';
+export {
+	LIMITING_MAGNITUDE,
+	MIN_VISIBLE_ANGULAR_DIAMETER_DEG,
+	SUN_APPARENT_MAGNITUDE,
+	isAboveVisibilityLimit
+} from './visibility';
+export type { VisibilityInput } from './visibility';
+export {
 	advanceInstant,
 	clampInstant,
 	hasReachedEnd,
@@ -51,6 +79,7 @@ export {
 export {
 	isDaylight,
 	observerNormal,
+	pointAltitudeAzimuthDeg,
 	sunAzimuthDeg,
 	sunElevationDeg
 } from './observers';
@@ -71,6 +100,7 @@ export type {
 	Instant,
 	Observer,
 	SceneBody,
+	SceneMoon,
 	SceneObserver,
 	SceneSnapshot,
 	SessionEvent,

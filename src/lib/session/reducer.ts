@@ -8,6 +8,7 @@
  */
 
 import { handlePlaceObserver } from './handlers/place-observer';
+import { handleSetSetting } from './handlers/set-setting';
 import { handleScrubTo } from './handlers/scrub-to';
 import { handleSetLocale } from './handlers/set-locale';
 import { handleToggleScale } from './handlers/toggle-scale';
@@ -22,6 +23,7 @@ export const SESSION_HANDLERS: readonly SessionHandler[] = [
 	handleScrubTo,
 	handlePlaceObserver,
 	handleSetLocale,
+	handleSetSetting,
 	handleToggleScale
 ];
 

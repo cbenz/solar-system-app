@@ -94,6 +94,27 @@ export type SceneBody = {
 	radiusFactor: number;
 };
 
+/**
+ * The Moon as one POV sees it: where it is above the horizon, how much of it is
+ * lit and which way the lit limb points. The POV panel draws this and nothing
+ * else — no phase formulae in a component.
+ */
+export type SceneMoon = {
+	altitudeDeg: number;
+	/** Azimuth measured clockwise from north (0 … 360), for the POV panel. */
+	azimuthDeg: number;
+	illuminatedFraction: number;
+	phaseAngleDeg: number;
+	waxing: boolean;
+	angularDiameterDeg: number;
+	apparentMagnitude: number;
+	/**
+	 * Screen-plane direction from the Moon toward the Sun, in degrees from the
+	 * panel's +x (east) axis, counter-clockwise: the lit limb points that way.
+	 */
+	litLimbAngleDeg: number;
+};
+
 export type SceneObserver = {
 	observer: Observer;
 	sunElevationDeg: number;
@@ -103,6 +124,10 @@ export type SceneObserver = {
 	/** Outward surface normal in the ecliptic frame, for the dot on the globe. */
 	surfaceNormal: Vec3;
 	visibleBodies: BodyId[];
+	/** True when `visibleBodies` is narrowed by the visibility limit. */
+	visibilityLimit: boolean;
+	/** The Moon for this POV, or null when it is not drawn (see `night-sky.ts`). */
+	moon: SceneMoon | null;
 };
 
 export type SceneSnapshot = {
