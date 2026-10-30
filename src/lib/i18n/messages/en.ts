@@ -33,6 +33,27 @@ export const en = {
 	'term.true-size': 'True size',
 	'term.visibility-limit': 'Visibility limit',
 
+	'body.sun': 'Sun',
+	'body.earth': 'Earth',
+	'body.moon': 'Moon',
+
+	'sandbox.properties': 'Properties',
+	'sandbox.properties.open': 'Properties of {body}',
+	'sandbox.properties.mass': 'Mass',
+	'sandbox.properties.distance': 'Distance',
+	'sandbox.properties.speed': 'Speed',
+	'sandbox.properties.period': 'Orbit period',
+	'sandbox.properties.escaped': 'Left its orbit',
+	'sandbox.edit': 'Edit',
+	'sandbox.confirm': 'Apply',
+	'sandbox.cancel': 'Cancel',
+	'sandbox.close': 'Close',
+
+	'unit.kg': 'kg',
+	'unit.au': 'AU',
+	'unit.kmPerS': 'km/s',
+	'unit.days': 'days',
+
 	'place.name.equator': 'Equator',
 	'place.name.tropicOfCancer': 'Tropic of Cancer',
 	'place.name.tropicOfCapricorn': 'Tropic of Capricorn',

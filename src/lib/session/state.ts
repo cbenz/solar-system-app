@@ -65,7 +65,14 @@ export function createInitialState(options: InitialStateOptions = {}): SessionSt
 		camera: DEFAULT_CAMERA,
 		activities: options.activities ?? discoveredActivities,
 		sandboxView: null,
-		mission: null
+		mission: null,
+		sandbox: {
+			orbits: {},
+			masses: {},
+			sunPositionAu: { x: 0, y: 0, z: 0 },
+			selectedBodyId: null,
+			editBaseline: null
+		}
 	};
 }
 

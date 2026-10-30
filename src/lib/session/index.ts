@@ -39,6 +39,49 @@ export type { Subsystem } from './subsystem';
 export { OBSERVER_COLOURS } from './observer-colour';
 export { HORIZON_FRACTION, horizonY, skyToScreen } from './sky';
 export type { SkyPoint, SkyViewport } from './sky';
+export {
+	AU_PER_DAY_TO_KM_PER_S,
+	EARTH_MASS_KG,
+	MOON_MASS_KG,
+	MU_SUN_AU3_PER_DAY2,
+	SUN_MASS_KG,
+	escapeSpeedAtRadius,
+	gravitationalParameter,
+	orbitFromStateVector,
+	positionAtElapsed,
+	speedAtRadius,
+	stateVectorAtElapsed
+} from './orbit';
+export type { ConicKind, ConicOrbit, StateVector } from './orbit';
+export {
+	DEFAULT_MASS_KG,
+	ESCAPE_HORIZON_DAYS,
+	bodyParameterLimits,
+	bodyParameters,
+	bodyPositionAu,
+	circularSpeedAuPerDay,
+	dropBody,
+	ephemerisRelativePositionAu,
+	escapeSpeedKmPerS,
+	escapedTrack,
+	hasEscaped,
+	massOf,
+	moveSun,
+	muFor,
+	orbitPeriodDays,
+	relativeOrbitState,
+	relativePositionAu,
+	setBodyParameter,
+	storedOrbit,
+	sunDirectionFromEarth
+} from './sandbox';
+export type {
+	BodyParameterLimits,
+	BodyParameters,
+	ParameterLimit,
+	RelativeOrbitState,
+	SandboxParameter
+} from './sandbox';
 export { BODY_CONTRIBUTORS } from './scene-bodies';
 export type { BodyContributor } from './scene-bodies';
 export { OBSERVER_CONTRIBUTORS } from './scene-observers';
@@ -125,6 +168,9 @@ export type {
 	MissionProgress,
 	Observer,
 	RecordedPrediction,
+	SandboxEditBaseline,
+	SandboxOrbit,
+	SandboxState,
 	SandboxView,
 	SceneBody,
 	SceneMarker,
