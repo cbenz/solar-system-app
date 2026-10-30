@@ -12,16 +12,21 @@
 	import { createScene, type ObserverLabelPosition, type SceneHandle } from '$lib/scene/scene';
 	import {
 		applyEvent,
+		bodyPositionAu,
 		buildScene,
 		clampCamera,
 		createInitialState,
 		placementTargetId,
+		type BodyId,
 		type SceneSnapshot,
 		type SessionEvent,
-		type SessionState
+		type SessionState,
+		type Vec3
 	} from '$lib/session';
 	import ObserverLabels from '$lib/ui/ObserverLabels.svelte';
 	import ActivityToolbar from '$lib/ui/ActivityToolbar.svelte';
+	import BodyPropertiesCard from '$lib/ui/BodyPropertiesCard.svelte';
+	import SandboxToolbar from '$lib/ui/SandboxToolbar.svelte';
 	import PovDock from '$lib/ui/PovDock.svelte';
 	import ScaleBanner from '$lib/ui/ScaleBanner.svelte';
 	import Timeline from '$lib/ui/Timeline.svelte';
@@ -50,6 +55,27 @@
 		dispatch({ type: 'place-observer', povId, latitudeDeg: intent.latitudeDeg });
 	}
 
+	/**
+	 * A dragged body arrives relative to the Earth, the drawn frame's origin. The
+	 * Sun's event wants an absolute sandbox position, so the Earth is added back;
+	 * a dropped moon already speaks relative to its primary.
+	 */
+	function dropBody(bodyId: BodyId, position: Vec3): void {
+		if (bodyId === 'sun') {
+			const earth = bodyPositionAu(session, 'earth', session.instant);
+			dispatch({
+				type: 'move-body',
+				bodyId: 'sun',
+				position: { x: earth.x + position.x, y: earth.y + position.y, z: earth.z + position.z }
+			});
+			return;
+		}
+
+		// A drag-and-release is a drop with no velocity: the session's documented
+		// convention (circular at the drop radius) supplies the orbit.
+		dispatch({ type: 'drop-body', bodyId, position, velocity: null });
+	}
+
 	onMount(() => {
 		const created = createScene(host, {
 			// The renderer asks; the session decides where the camera may go.
@@ -57,6 +83,8 @@
 			onCameraChange: (camera) => dispatch({ type: 'set-camera', camera }),
 			onOpenActivity: (activityId) => dispatch({ type: 'open-activity', activityId }),
 			onPlacement: placeObserver,
+			canDragBodies: () => session.mode === 'sandbox',
+			onBodyDrop: dropBody,
 			onLabelsChange: (labels) => {
 				labelPositions = Object.fromEntries(labels.map((label) => [label.id, label]));
 			}
@@ -77,6 +105,8 @@
 <div class="scene" bind:this={host}></div>
 <ObserverLabels entries={snapshot.observers} positions={labelPositions} locale={session.locale} />
 <ActivityToolbar session={session} {dispatch} />
+<SandboxToolbar session={session} {dispatch} />
+<BodyPropertiesCard session={session} {dispatch} />
 <PovDock observers={snapshot.observers} />
 <ScaleBanner session={session} {dispatch} />
 <Timeline session={session} {dispatch} />

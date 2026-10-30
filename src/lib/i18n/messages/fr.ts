@@ -30,6 +30,27 @@ export const fr: Record<MessageKey, string> = {
 	'term.true-size': 'Taille réelle',
 	'term.visibility-limit': 'Limite de visibilité',
 
+	'body.sun': 'Soleil',
+	'body.earth': 'Terre',
+	'body.moon': 'Lune',
+
+	'sandbox.properties': 'Propriétés',
+	'sandbox.properties.open': 'Propriétés de : {body}',
+	'sandbox.properties.mass': 'Masse',
+	'sandbox.properties.distance': 'Distance',
+	'sandbox.properties.speed': 'Vitesse',
+	'sandbox.properties.period': "Période de l'orbite",
+	'sandbox.properties.escaped': 'A quitté son orbite',
+	'sandbox.edit': 'Modifier',
+	'sandbox.confirm': 'Appliquer',
+	'sandbox.cancel': 'Annuler',
+	'sandbox.close': 'Fermer',
+
+	'unit.kg': 'kg',
+	'unit.au': 'UA',
+	'unit.kmPerS': 'km/s',
+	'unit.days': 'jours',
+
 	'place.name.equator': 'Équateur',
 	'place.name.tropicOfCancer': 'Tropique du Cancer',
 	'place.name.tropicOfCapricorn': 'Tropique du Capricorne',

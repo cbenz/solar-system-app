@@ -4,11 +4,13 @@ import {
 	DRAWN_EARTH_RADIUS_AU,
 	pickLatitude,
 	trueRadiusAu,
+	type BodyId,
 	type CameraState,
 	type Observer,
 	type SceneBody,
 	type SceneMarker,
-	type SceneSnapshot
+	type SceneSnapshot,
+	type Vec3
 } from '$lib/session';
 import { circlePoints, CIRCLE_RADIUS_FACTOR, DEFAULT_CIRCLES, type CircleSpec } from './circles';
 import { createEarthTexture } from './earth-texture';
@@ -73,6 +75,13 @@ export type SceneOptions = {
 	onLabelsChange?: (labels: ObserverLabelPosition[]) => void;
 	/** Called when a pointer gesture asks for an observer to be placed or moved. */
 	onPlacement?: (intent: PlacementIntent) => void;
+	/** Whether a body may be dragged right now (sandbox only). */
+	canDragBodies?: () => boolean;
+	/**
+	 * A dragged body's new position, in AU **relative to the Earth** (the drawn
+	 * frame's origin). The page turns it into `move-body` or `drop-body`.
+	 */
+	onBodyDrop?: (bodyId: BodyId, position: Vec3) => void;
 };
 
 export type SceneHandle = {
@@ -125,6 +134,23 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 	const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xfff2c4 });
 	const sun = new THREE.Mesh(sunGeometry, sunMaterial);
 	scene.add(sun);
+
+	// The Moon is drawn too, small but draggable: the sandbox needs a body the
+	// child can pull off its orbit, and the Sun already owns the light.
+	const moonGeometry = new THREE.SphereGeometry(1, 32, 24);
+	const moonMaterial = new THREE.MeshStandardMaterial({ color: 0xbfc3c9, roughness: 1 });
+	const moon = new THREE.Mesh(moonGeometry, moonMaterial);
+	scene.add(moon);
+
+	// The visible track of an escaped body: it leaves the orbit and does not
+	// come back, which is exactly what the sandbox is demonstrating.
+	const trackMaterial = new THREE.LineBasicMaterial({
+		color: 0xfbbf24,
+		transparent: true,
+		opacity: 0.9,
+		depthWrite: false
+	});
+	const trackLines = new Map<BodyId, THREE.Line>();
 
 	// Latitude circles: line loops on the sphere, slightly outside it so they do
 	// not z-fight with the surface. The Equator is always drawn (ticket 06);
@@ -265,21 +291,58 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 		const earthBody = snapshot.bodies.find((body) => body.id === 'earth');
 		if (earthBody === undefined) return;
 
-		// The Earth is the origin of the drawn frame. Its position is true in the
-		// snapshot, so the drawn Sun offset is that vector scaled by the Earth's
-		// distance factor and flipped: the Sun is where the Earth is not.
-		const { x, y, z } = earthBody.position;
-		const offset = new THREE.Vector3(-x, -y, -z).multiplyScalar(
-			earthBody.distanceFactor * UNITS_PER_AU
-		);
+		// The Earth is the origin of the drawn frame. Every other body is drawn at
+		// its true offset from the Earth, scaled by the Earth's distance factor:
+		// light comes from where the Sun really is, not from an axis.
+		const drawScale = earthBody.distanceFactor * UNITS_PER_AU;
+		lastDrawScale = drawScale;
+		const drawnOffset = (position: Vec3): THREE.Vector3 =>
+			new THREE.Vector3(
+				position.x - earthBody.position.x,
+				position.y - earthBody.position.y,
+				position.z - earthBody.position.z
+			).multiplyScalar(drawScale);
 
-		sun.position.copy(offset);
-		sunlight.position.copy(offset);
 		earth.scale.setScalar(drawnRadius(earthBody));
 
 		const sunBody = snapshot.bodies.find((body) => body.id === 'sun');
 		sun.visible = sunBody !== undefined;
-		if (sunBody !== undefined) sun.scale.setScalar(drawnRadius(sunBody));
+		if (sunBody !== undefined) {
+			sun.position.copy(drawnOffset(sunBody.position));
+			sunlight.position.copy(sun.position);
+			sun.scale.setScalar(drawnRadius(sunBody));
+		}
+
+		const moonBody = snapshot.bodies.find((body) => body.id === 'moon');
+		moon.visible = moonBody !== undefined;
+		if (moonBody !== undefined) {
+			moon.position.copy(drawnOffset(moonBody.position));
+			moon.scale.setScalar(drawnRadius(moonBody));
+		}
+
+		// An escaped body's future track, sampled by the session and drawn here.
+		const tracked = new Set<BodyId>();
+		for (const body of snapshot.bodies) {
+			if (body.escaped && body.track.length > 1) {
+				tracked.add(body.id);
+				let line = trackLines.get(body.id);
+				if (line === undefined) {
+					line = new THREE.Line(new THREE.BufferGeometry(), trackMaterial);
+					trackLines.set(body.id, line);
+					scene.add(line);
+				}
+				line.geometry.dispose();
+				line.geometry = new THREE.BufferGeometry().setFromPoints(
+					body.track.map(drawnOffset)
+				);
+			}
+		}
+		for (const [id, line] of trackLines) {
+			if (tracked.has(id)) continue;
+			scene.remove(line);
+			line.geometry.dispose();
+			trackLines.delete(id);
+		}
 
 		const present = new Set<string>();
 		for (const entry of snapshot.observers) {
@@ -460,6 +523,8 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 	// any resolution); the renderer only says where the dot is on screen.
 
 	let lastSnapshot: SceneSnapshot | null = null;
+	/** Drawn units per AU from the last snapshot, for a drag's conversion back. */
+	let lastDrawScale = 1;
 
 	function emitLabels(): void {
 		const onLabelsChange = options.onLabelsChange;
@@ -490,6 +555,108 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 		if (signature === lastLabelSignature) return;
 		lastLabelSignature = signature;
 		onLabelsChange(labels);
+	}
+
+	// --- Body dragging ------------------------------------------------------
+	// In the sandbox the Sun and the Moon can be pulled off their orbits. The
+	// drag previews in the renderer and only the release dispatches an event;
+	// the session owns the resulting conic (ADR-0007), including the convention
+	// for a drop with no velocity.
+
+	const BODY_TOUCH_RADIUS_PX = 32;
+
+	type BodyDrag = {
+		id: BodyId;
+		object: THREE.Object3D;
+		plane: THREE.Plane;
+		/** Drawn units per AU at the moment the drag started. */
+		scale: number;
+	};
+
+	let bodyDrag: BodyDrag | null = null;
+
+	function draggableBodyAt(
+		clientX: number,
+		clientY: number
+	): { id: BodyId; object: THREE.Object3D } | null {
+		if (!(options.canDragBodies?.() ?? false)) return null;
+
+		const rect = canvas.getBoundingClientRect();
+		const candidates: { id: BodyId; object: THREE.Object3D }[] = [
+			{ id: 'sun', object: sun },
+			{ id: 'moon', object: moon }
+		];
+		const world = new THREE.Vector3();
+		let best: { id: BodyId; object: THREE.Object3D; distance: number } | null = null;
+
+		for (const candidate of candidates) {
+			if (!candidate.object.visible) continue;
+			candidate.object.getWorldPosition(world);
+			const projected = world.clone().project(camera);
+			if (projected.z > 1) continue;
+			const x = rect.left + (projected.x * 0.5 + 0.5) * rect.width;
+			const y = rect.top + (-projected.y * 0.5 + 0.5) * rect.height;
+			const distance = Math.hypot(x - clientX, y - clientY);
+			if (distance > BODY_TOUCH_RADIUS_PX) continue;
+			if (best === null || distance < best.distance) {
+				best = { id: candidate.id, object: candidate.object, distance };
+			}
+		}
+
+		return best === null ? null : { id: best.id, object: best.object };
+	}
+
+	function beginBodyDrag(event: PointerEvent): boolean {
+		const hit = draggableBodyAt(event.clientX, event.clientY);
+		if (hit === null) return false;
+
+		const normal = new THREE.Vector3();
+		camera.getWorldDirection(normal);
+		const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(
+			normal,
+			hit.object.position.clone()
+		);
+
+		bodyDrag = { id: hit.id, object: hit.object, plane, scale: lastDrawScale };
+		canvas.setPointerCapture(event.pointerId);
+		return true;
+	}
+
+	function bodyDragPoint(event: PointerEvent): THREE.Vector3 | null {
+		if (bodyDrag === null) return null;
+		const point = new THREE.Vector3();
+		return rayAt(event.clientX, event.clientY).intersectPlane(bodyDrag.plane, point);
+	}
+
+	function moveBodyDrag(event: PointerEvent): void {
+		const point = bodyDragPoint(event);
+		if (point === null || bodyDrag === null) return;
+
+		bodyDrag.object.position.copy(point);
+		if (bodyDrag.id === 'sun') sunlight.position.copy(point);
+	}
+
+	function finishBodyDrag(event: PointerEvent, commit: boolean): void {
+		const drag = bodyDrag;
+		bodyDrag = null;
+		if (canvas.hasPointerCapture(event.pointerId)) {
+			canvas.releasePointerCapture(event.pointerId);
+		}
+		if (drag === null || !commit) return;
+
+		const point = bodyDragPointOf(drag, event);
+		if (point === null) return;
+
+		options.onBodyDrop?.(drag.id, {
+			x: point.x / drag.scale,
+			y: point.y / drag.scale,
+			z: point.z / drag.scale
+		});
+	}
+
+	function bodyDragPointOf(drag: BodyDrag, event: PointerEvent): THREE.Vector3 | null {
+		const point = new THREE.Vector3();
+		return rayAt(event.clientX, event.clientY).intersectPlane(drag.plane, point);
 	}
 
 	// --- Gestures -----------------------------------------------------------
@@ -523,6 +690,8 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 	}
 
 	function onPointerDown(event: PointerEvent): void {
+		if (beginBodyDrag(event)) return;
+
 		canvas.setPointerCapture(event.pointerId);
 		markerTapStart.set(event.pointerId, { x: event.clientX, y: event.clientY });
 		markerTapMoved.delete(event.pointerId);
@@ -540,6 +709,11 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 	}
 
 	function onPointerMove(event: PointerEvent): void {
+		if (bodyDrag !== null) {
+			moveBodyDrag(event);
+			return;
+		}
+
 		const dragging = gesture.placement?.kind === 'drag-observer';
 		const result = reduceGesture(gesture, {
 			phase: 'move',
@@ -576,6 +750,11 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 	}
 
 	function onPointerUp(event: PointerEvent): void {
+		if (bodyDrag !== null) {
+			finishBodyDrag(event, true);
+			return;
+		}
+
 		const start = markerTapStart.get(event.pointerId);
 		const moved = markerTapMoved.has(event.pointerId);
 
@@ -589,6 +768,11 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 	}
 
 	function onPointerCancel(event: PointerEvent): void {
+		if (bodyDrag !== null) {
+			finishBodyDrag(event, false);
+			return;
+		}
+
 		endPointer(event, 'cancel');
 		markerTapStart.delete(event.pointerId);
 		markerTapMoved.delete(event.pointerId);
@@ -677,7 +861,9 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 			scene.remove(earth);
 			scene.remove(surface);
 			scene.remove(sun);
+			scene.remove(moon);
 			scene.remove(stars);
+			for (const line of trackLines.values()) scene.remove(line);
 			for (const dot of observerDots.values()) surface.remove(dot);
 			observerDots.clear();
 			for (const ring of markerRings.values()) scene.remove(ring);
@@ -687,6 +873,11 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 			earthTexture.dispose();
 			sunGeometry.dispose();
 			sunMaterial.dispose();
+			moonGeometry.dispose();
+			moonMaterial.dispose();
+			trackMaterial.dispose();
+			for (const line of trackLines.values()) line.geometry.dispose();
+			trackLines.clear();
 			observerGeometry.dispose();
 			for (const material of observerMaterials.values()) material.dispose();
 			observerMaterials.clear();
