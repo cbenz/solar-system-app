@@ -3,8 +3,11 @@
  * through. Kept out of the reducer so handlers stay one-concern switches.
  */
 
+import { activities as discoveredActivities } from '../../activities';
+import type { Activity } from '../../activities/types';
 import { DEFAULT_LOCALE, type Locale } from '$lib/i18n/locale';
 import { FIRST_POV_ID } from './handlers/place-observer';
+import { DEFAULT_CAMERA } from './camera';
 import { nextObserverColour } from './observer-colour';
 import { sandboxSpan } from './time';
 import type { BodyId, Instant, SessionState, TimeSpan } from './types';
@@ -26,6 +29,8 @@ export type InitialStateOptions = {
 	instant?: Instant;
 	timeSpan?: TimeSpan;
 	settings?: Record<string, number | boolean>;
+	/** The catalogue the session resolves activity ids against. Tests inject fixtures. */
+	activities?: readonly Activity[];
 };
 
 export function createInitialState(options: InitialStateOptions = {}): SessionState {
@@ -53,9 +58,13 @@ export function createInitialState(options: InitialStateOptions = {}): SessionSt
 		],
 		settings: {
 			playbackSpeed: DEFAULT_PLAYBACK_SPEED,
+			visibilityLimit: false,
 			...(options.settings ?? {})
 		},
-		timeSpan
+		timeSpan,
+		camera: DEFAULT_CAMERA,
+		activities: options.activities ?? discoveredActivities,
+		sandboxView: null
 	};
 }
 

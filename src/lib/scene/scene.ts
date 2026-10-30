@@ -1,10 +1,13 @@
 import * as THREE from 'three';
 import {
+	DEFAULT_CAMERA,
 	DRAWN_EARTH_RADIUS_AU,
 	pickLatitude,
 	trueRadiusAu,
+	type CameraState,
 	type Observer,
 	type SceneBody,
+	type SceneMarker,
 	type SceneSnapshot
 } from '$lib/session';
 import { circlePoints, CIRCLE_RADIUS_FACTOR, DEFAULT_CIRCLES, type CircleSpec } from './circles';
@@ -14,11 +17,11 @@ import {
 	EMPTY_GESTURE,
 	cameraControlsEnabled,
 	reduceGesture,
+	type GestureDelta,
 	type GestureState,
 	type PlacementHit,
 	type PlacementIntent
 } from './gesture';
-import { clampCameraDistance, clampPitch } from './view';
 
 /**
  * The renderer seam.
@@ -36,9 +39,7 @@ import { clampCameraDistance, clampPitch } from './view';
  */
 const UNITS_PER_AU = 1 / DRAWN_EARTH_RADIUS_AU;
 const EARTH_RADIUS = 1;
-const INITIAL_CAMERA_DISTANCE = 3.2;
 const INITIAL_YAW = 0;
-const INITIAL_PITCH = 0.1;
 
 /** The globe's surface frame: `+y` is north, the sphere sits at the origin. */
 const OBSERVER_DOT_RADIUS = EARTH_RADIUS * 0.025;
@@ -55,7 +56,14 @@ export type ObserverLabelPosition = {
 	visible: boolean;
 };
 
+/** What the page lets the renderer ask the session; none of it is computed here. */
 export type SceneOptions = {
+	/** Session-owned clamp: the renderer uses the returned camera as-is. */
+	clampCamera?: (requested: CameraState) => CameraState;
+	/** Tell the session where the gesture moved the camera, so a round trip restores it. */
+	onCameraChange?: (requested: CameraState) => void;
+	/** Open an activity when its marker is tapped. */
+	onOpenActivity?: (activityId: string) => void;
 	/**
 	 * Latitude circles to draw. The Equator by default; ticket 11 passes the
 	 * Tropics and the Polar Circles through the same input.
@@ -145,6 +153,12 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 	const observerMaterials = new Map<string, THREE.MeshBasicMaterial>();
 	const observerDots = new Map<string, THREE.Mesh>();
 
+	// Activity markers: a cyan halo ring, not a bigger sphere, so a marker can
+	// never be mistaken for the body itself.
+	const markerGeometry = new THREE.TorusGeometry(1, 0.035, 10, 48);
+	const markerMaterial = new THREE.MeshBasicMaterial({ color: 0x7dd3fc });
+	const markerRings = new Map<string, THREE.Mesh>();
+
 	function observerMaterial(colour: string): THREE.MeshBasicMaterial {
 		const cached = observerMaterials.get(colour);
 		if (cached !== undefined) return cached;
@@ -166,9 +180,9 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 	const stars = createStarfield();
 	scene.add(stars);
 
-	let distance = INITIAL_CAMERA_DISTANCE;
+	let distance = DEFAULT_CAMERA.distance;
 	let yaw = INITIAL_YAW;
-	let pitch = INITIAL_PITCH;
+	let pitch = DEFAULT_CAMERA.pitch;
 	let gesture: GestureState = EMPTY_GESTURE;
 	let frame: number | null = null;
 	let destroyed = false;
@@ -181,6 +195,19 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 
 	function updateRotation(): void {
 		earth.rotation.set(pitch, yaw, 0);
+	}
+
+	/**
+	 * Ask the session for the camera and use its answer. The renderer never
+	 * decides how far an activity lets the child zoom.
+	 */
+	function requestCamera(requested: CameraState): void {
+		const accepted = options.clampCamera?.(requested) ?? requested;
+		distance = accepted.distance;
+		pitch = accepted.pitch;
+		updateCamera();
+		updateRotation();
+		options.onCameraChange?.(requested);
 	}
 
 	/** The drawn radius of a body, in scene units, from its true radius and factor. */
@@ -198,7 +225,43 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 		);
 	}
 
+	/** Where a marker's halo goes, in the drawn frame. */
+	function markerPlacement(
+		marker: SceneMarker,
+		snapshot: SceneSnapshot,
+		slot: number
+	): { centre: THREE.Vector3; radius: number } | null {
+		const body = snapshot.bodies.find((candidate) => candidate.id === marker.bodyId);
+		if (body === undefined) return null;
+
+		// Several activities on one body get concentric halos instead of one ring
+		// hiding the others.
+		const ringRadius = 1.35 + slot * 0.22;
+
+		if (marker.bodyId === 'earth') {
+			return {
+				centre: new THREE.Vector3(0, 0, 0),
+				radius: drawnRadius(body) * EARTH_RADIUS * ringRadius
+			};
+		}
+
+		if (marker.bodyId === 'sun') {
+			return {
+				centre: sun.position.clone(),
+				radius: drawnRadius(body) * ringRadius
+			};
+		}
+
+		// The Moon has no mesh yet (ticket 14); a marker there would be a halo
+		// around nothing.
+		return null;
+	}
 	function applySnapshot(snapshot: SceneSnapshot): void {
+		distance = snapshot.camera.distance;
+		pitch = snapshot.camera.pitch;
+		updateCamera();
+		updateRotation();
+
 		const earthBody = snapshot.bodies.find((body) => body.id === 'earth');
 		if (earthBody === undefined) return;
 
@@ -239,6 +302,65 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 			surface.remove(dot);
 			observerDots.delete(id);
 		}
+
+		const presentMarkers = new Set<string>();
+		const slotsPerBody = new Map<string, number>();
+		for (const marker of snapshot.markers) {
+			const key = `${marker.activityId}:${marker.bodyId}`;
+			presentMarkers.add(key);
+
+			let ring = markerRings.get(key);
+			if (ring === undefined) {
+				ring = new THREE.Mesh(markerGeometry, markerMaterial);
+				ring.userData.activityId = marker.activityId;
+				markerRings.set(key, ring);
+				scene.add(ring);
+			}
+
+			const slot = slotsPerBody.get(marker.bodyId) ?? 0;
+			slotsPerBody.set(marker.bodyId, slot + 1);
+
+			const placement = markerPlacement(marker, snapshot, slot);
+			ring.visible = placement !== null;
+			if (placement === null) continue;
+
+			ring.position.copy(placement.centre);
+			ring.scale.setScalar(placement.radius);
+		}
+
+		for (const [key, ring] of markerRings) {
+			if (presentMarkers.has(key)) continue;
+			scene.remove(ring);
+			markerRings.delete(key);
+		}
+	}
+
+	// --- Marker taps --------------------------------------------------------
+	// A tap is a pointer that went down and up without travelling. Dragging the
+	// Earth must not open an activity by accident.
+
+	const MARKER_TAP_SLOP_PX = 6;
+	const markerTapStart = new Map<number, { x: number; y: number }>();
+	const markerTapMoved = new Set<number>();
+	const raycaster = new THREE.Raycaster();
+	const pointerNdc = new THREE.Vector2();
+
+	function markerAt(event: PointerEvent): string | undefined {
+		if (markerRings.size === 0) return undefined;
+
+		const bounds = canvas.getBoundingClientRect();
+		if (bounds.width <= 0 || bounds.height <= 0) return undefined;
+
+		pointerNdc.set(
+			((event.clientX - bounds.left) / bounds.width) * 2 - 1,
+			-((event.clientY - bounds.top) / bounds.height) * 2 + 1
+		);
+		raycaster.setFromCamera(pointerNdc, camera);
+
+		const rings = [...markerRings.values()].filter((ring) => ring.visible);
+		const hit = raycaster.intersectObjects(rings, false)[0];
+		const id = hit?.object.userData.activityId;
+		return typeof id === 'string' ? id : undefined;
 	}
 
 	// --- Picking ------------------------------------------------------------
@@ -246,8 +368,6 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 	// to a ray. The rule that turns the ray into a latitude is the session
 	// module's `pickLatitude`, tested there.
 
-	const raycaster = new THREE.Raycaster();
-	const pointerNdc = new THREE.Vector2();
 	const scratch = new THREE.Vector3();
 
 	/**
@@ -381,27 +501,41 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 	// gesture instead, and the pure reducer freezes the camera for its whole
 	// duration (ticket 06).
 
-	function applyDelta(delta: { yaw: number; pitch: number; zoom: number }): void {
-		if (delta.yaw !== 0 || delta.pitch !== 0) {
+	/**
+	 * A placement gesture produces the zero delta, so the camera never moves
+	 * during a tap or a drag (ticket 06). Everything else is ticket 01's camera,
+	 * with the session still deciding where it may go.
+	 */
+	function applyDelta(delta: GestureDelta): void {
+		if (delta.yaw !== 0) {
 			yaw += delta.yaw;
-			pitch = clampPitch(pitch + delta.pitch);
 			updateRotation();
 		}
 
-		if (delta.zoom !== 1) {
-			// Spreading the fingers zooms in, so the camera moves closer.
-			distance = clampCameraDistance(distance / delta.zoom);
-			updateCamera();
-		}
+		if (delta.pitch === 0 && delta.zoom === 1) return;
+
+		const requested: CameraState = {
+			distance: delta.zoom === 1 ? distance : distance / delta.zoom,
+			pitch: pitch + delta.pitch
+		};
+
+		requestCamera(requested);
 	}
 
 	function onPointerDown(event: PointerEvent): void {
 		canvas.setPointerCapture(event.pointerId);
+		markerTapStart.set(event.pointerId, { x: event.clientX, y: event.clientY });
+		markerTapMoved.delete(event.pointerId);
+
+		// A tap on an activity marker opens the activity; it does not place an
+		// observer on the globe behind it.
+		const onMarker = markerAt(event) !== undefined;
+
 		gesture = reduceGesture(gesture, {
 			phase: 'down',
 			pointerId: event.pointerId,
 			position: { x: event.clientX, y: event.clientY },
-			hit: pickHit(event.clientX, event.clientY)
+			hit: onMarker ? { kind: 'miss' } : pickHit(event.clientX, event.clientY)
 		}).state;
 	}
 
@@ -428,6 +562,13 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 		gesture = result.state;
 
 		if (result.placement !== null) options.onPlacement?.(result.placement);
+		applyDelta(result.delta);
+
+		const cancelled = markerTapStart.get(event.pointerId);
+		if (cancelled !== undefined) {
+			const moved = Math.hypot(event.clientX - cancelled.x, event.clientY - cancelled.y);
+			if (moved > MARKER_TAP_SLOP_PX) markerTapMoved.add(event.pointerId);
+		}
 
 		if (canvas.hasPointerCapture(event.pointerId)) {
 			canvas.releasePointerCapture(event.pointerId);
@@ -435,18 +576,28 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 	}
 
 	function onPointerUp(event: PointerEvent): void {
+		const start = markerTapStart.get(event.pointerId);
+		const moved = markerTapMoved.has(event.pointerId);
+
 		endPointer(event, 'up');
+		markerTapStart.delete(event.pointerId);
+		markerTapMoved.delete(event.pointerId);
+
+		if (start === undefined || moved) return;
+		const activityId = markerAt(event);
+		if (activityId !== undefined) options.onOpenActivity?.(activityId);
 	}
 
 	function onPointerCancel(event: PointerEvent): void {
 		endPointer(event, 'cancel');
+		markerTapStart.delete(event.pointerId);
+		markerTapMoved.delete(event.pointerId);
 	}
 
 	function onWheel(event: WheelEvent): void {
 		event.preventDefault();
 		if (!cameraControlsEnabled(gesture)) return;
-		distance = clampCameraDistance(distance * Math.exp(event.deltaY * 0.001));
-		updateCamera();
+		requestCamera({ distance: distance * Math.exp(event.deltaY * 0.001), pitch });
 	}
 
 	canvas.addEventListener('pointerdown', onPointerDown);
@@ -529,6 +680,8 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 			scene.remove(stars);
 			for (const dot of observerDots.values()) surface.remove(dot);
 			observerDots.clear();
+			for (const ring of markerRings.values()) scene.remove(ring);
+			markerRings.clear();
 			earthGeometry.dispose();
 			earthMaterial.dispose();
 			earthTexture.dispose();
@@ -541,6 +694,8 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 			for (const material of circleMaterials) material.dispose();
 			circleGeometries.length = 0;
 			circleMaterials.length = 0;
+			markerGeometry.dispose();
+			markerMaterial.dispose();
 
 			const starMaterial = stars.material;
 			if (Array.isArray(starMaterial)) {

@@ -7,9 +7,16 @@
 	 * Daylight, and therefore whether the whole panel is dark, comes from the
 	 * snapshot's `daylight` boolean — the same sign of the same dot product that
 	 * shades the globe. Never from a clock, never from a second lighting test.
+	 *
+	 * The night sky is two things (ticket 16): a decorative star field and the
+	 * real Moon. The stars come from the session's seeded `starField`, so they
+	 * never shimmer between renders, and they claim nothing — no constellation,
+	 * no named star. The Moon is drawn where the snapshot puts it, at the phase
+	 * and size the model gives, its lit limb turned toward its `litLimbAngleDeg`.
+	 * Everything the POV draws is either in `visibleBodies` or decorative.
 	 */
 	import { onMount } from 'svelte';
-	import { skyToScreen, type SceneObserver } from '$lib/session';
+	import { skyToScreen, starField, NIGHT_SKY_SEED, type SceneObserver } from '$lib/session';
 
 	let { entry }: { entry: SceneObserver } = $props();
 
@@ -17,15 +24,8 @@
 	let width = $state(0);
 	let height = $state(0);
 
-	// Decorative stars for the post-dark sky. Ticket 16 owns the real night sky
-	// (the Moon, magnitudes, the visibility limit); this is the seam it replaces.
-	const STARS = Array.from({ length: 48 }, (_, index) => {
-		const noise = (value: number) => {
-			const raw = Math.sin(value * 12.9898 + 78.233) * 43758.5453;
-			return raw - Math.floor(raw);
-		};
-		return { x: noise(index + 1), y: noise(index + 97) * 0.92, size: 0.6 + noise(index + 31) * 1.4 };
-	});
+	// Generated once, from a fixed seed: the same sky on every render.
+	const STARS = starField(NIGHT_SKY_SEED);
 
 	function draw(): void {
 		if (canvas === undefined || width <= 0 || height <= 0) return;
@@ -46,6 +46,7 @@
 
 		const horizon = height * 0.68;
 		const daylight = entry.daylight;
+		const viewport = { width, height };
 
 		const sky = context.createLinearGradient(0, 0, 0, horizon);
 		if (daylight) {
@@ -59,10 +60,11 @@
 		context.fillRect(0, 0, width, horizon);
 
 		if (!daylight) {
-			context.fillStyle = 'rgba(255, 255, 255, 0.85)';
 			for (const star of STARS) {
+				const point = skyToScreen(star.altitudeDeg, star.azimuthDeg, viewport);
+				context.fillStyle = `rgba(255, 255, 255, ${0.25 + star.brightness * 0.65})`;
 				context.beginPath();
-				context.arc(star.x * width, star.y * horizon, star.size, 0, Math.PI * 2);
+				context.arc(point.x, point.y, 0.5 + star.brightness * 1.3, 0, Math.PI * 2);
 				context.fill();
 			}
 		}
@@ -85,27 +87,89 @@
 		context.lineTo(width, horizon);
 		context.stroke();
 
-		const sun = skyToScreen(entry.sunElevationDeg, entry.sunAzimuthDeg, { width, height });
+		// The Sun is drawn while it is in `visibleBodies`, or — with the limit off
+		// — always, so the panel can show it just under the horizon after dark.
+		const sunVisible =
+			entry.visibleBodies.includes('sun') || (!entry.visibilityLimit && !daylight);
+		const sun = skyToScreen(entry.sunElevationDeg, entry.sunAzimuthDeg, viewport);
 		const radius = Math.max(5, Math.min(width, height) * 0.055);
 
-		if (daylight && entry.sunElevationDeg > 0) {
-			const glow = context.createRadialGradient(sun.x, sun.y, radius * 0.2, sun.x, sun.y, radius * 3);
-			glow.addColorStop(0, 'rgba(255, 238, 170, 0.75)');
-			glow.addColorStop(1, 'rgba(255, 238, 170, 0)');
-			context.fillStyle = glow;
+		if (sunVisible) {
+			if (daylight && entry.sunElevationDeg > 0) {
+				const glow = context.createRadialGradient(
+					sun.x,
+					sun.y,
+					radius * 0.2,
+					sun.x,
+					sun.y,
+					radius * 3
+				);
+				glow.addColorStop(0, 'rgba(255, 238, 170, 0.75)');
+				glow.addColorStop(1, 'rgba(255, 238, 170, 0)');
+				context.fillStyle = glow;
+				context.beginPath();
+				context.arc(sun.x, sun.y, radius * 3, 0, Math.PI * 2);
+				context.fill();
+			}
+
+			// A Sun below the horizon stays drawn, dimmed, over the ground: the point
+			// of the panel after dark is that the Sun is visibly down there.
+			context.globalAlpha = daylight ? 1 : 0.5;
+			context.fillStyle = daylight ? '#fff3b0' : '#e0903a';
 			context.beginPath();
-			context.arc(sun.x, sun.y, radius * 3, 0, Math.PI * 2);
+			context.arc(sun.x, sun.y, radius, 0, Math.PI * 2);
 			context.fill();
+			context.globalAlpha = 1;
 		}
 
-		// A Sun below the horizon stays drawn, dimmed, over the ground: the point
-		// of the panel after dark is that the Sun is visibly down there.
-		context.globalAlpha = daylight ? 1 : 0.5;
-		context.fillStyle = daylight ? '#fff3b0' : '#e0903a';
+		const moon = entry.moon;
+		if (moon !== null && moon.altitudeDeg > 0 && entry.visibleBodies.includes('moon')) {
+			drawMoon(context, moon);
+		}
+	}
+
+	/**
+	 * A lit-limb disc: a half circle closed by a half ellipse whose width is
+	 * `cos α`. At α = 0 it is the full circle (full moon), at α = 90° a straight
+	 * terminator (quarter), at α = 180° nothing (new moon). The whole drawing is
+	 * turned so the lit limb faces the Sun, which is what puts the crescent on
+	 * the correct side.
+	 */
+	function drawMoon(
+		context: CanvasRenderingContext2D,
+		moon: NonNullable<SceneObserver['moon']>
+	): void {
+		const point = skyToScreen(moon.altitudeDeg, moon.azimuthDeg, { width, height });
+		// The true diameter is about half a degree — a pixel here. Drawn bigger so
+		// the phase is readable, never at its true size (the app says so elsewhere).
+		const discRadius = Math.max(7, Math.min(width, height) * 0.06);
+		const cosPhase = Math.cos((moon.phaseAngleDeg * Math.PI) / 180);
+		const terminator = Math.abs(cosPhase) < 1e-3 ? (cosPhase < 0 ? -1e-3 : 1e-3) : cosPhase;
+
+		context.save();
+		context.translate(point.x, point.y);
+		// Canvas +y points down, the snapshot's limb angle counts +y up.
+		context.rotate((-moon.litLimbAngleDeg * Math.PI) / 180);
+
 		context.beginPath();
-		context.arc(sun.x, sun.y, radius, 0, Math.PI * 2);
+		context.arc(0, 0, discRadius, 0, Math.PI * 2);
+		context.fillStyle = 'rgba(28, 34, 48, 0.95)';
 		context.fill();
-		context.globalAlpha = 1;
+		context.strokeStyle = 'rgba(200, 210, 230, 0.3)';
+		context.lineWidth = 1;
+		context.stroke();
+
+		context.beginPath();
+		context.arc(0, 0, discRadius, -Math.PI / 2, Math.PI / 2);
+		context.save();
+		context.scale(terminator, 1);
+		context.arc(0, 0, discRadius, Math.PI / 2, -Math.PI / 2);
+		context.restore();
+		context.closePath();
+		context.fillStyle = '#eef1f7';
+		context.fill();
+
+		context.restore();
 	}
 
 	onMount(() => {

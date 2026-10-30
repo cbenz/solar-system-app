@@ -23,14 +23,29 @@ concern. Do not grow a god-reducer; add a file and append it to a list.
 | `time.ts` | instant arithmetic, Julian Day, span ↔ track ratio, playback tick, span words. |
 | `observers.ts` | the observer's surface normal, Sun elevation, azimuth and daylight — one dot product, one rotation function. |
 | `observer-colour.ts` | the fixed three-colour observer palette and its first-free assignment. |
+| `pick.ts` | `pickLatitude`: the pure globe hit-test behind a tap — a ray, a sphere, and the latitude of the near crossing; a miss or the far side is `null`. |
+| `places.ts` | `placeName`: the geographic band of a latitude as a message key, with every threshold derived from the obliquity constant. |
 | `sky.ts` | `skyToScreen`: the POV panel's only geometry, a pure (altitude, azimuth) → pixel map. |
+| `moon.ts` | the Moon as the eye sees it: phase from the elongation, angular size, apparent magnitude. |
+| `visibility.ts` | the visibility limit's heuristic: `isAboveVisibilityLimit`, the limiting magnitude, the angular floor. |
+| `night-sky.ts` | `visibleBodiesFor` (narrowing by the limit), the Moon per POV, and the seeded decorative `starField`. |
 | `snap.ts` | the pure `snap(instant, snapPoints, ratio)` rule. |
 | `snap-points.ts` | which instants are worth snapping to, for a session state. |
 | `state.ts` | `createInitialState`, `reconcileTimeSpan` (span and instant normalisation). |
-| `scene.ts` | composes `scene-bodies.ts` and `scene-observers.ts` into a `SceneSnapshot`. |
+| `scene.ts` | composes `scene-bodies.ts`, `scene-observers.ts` and `scene-markers.ts` into a `SceneSnapshot`. |
+| `scene-markers.ts` | which activity markers are drawn on which bodies (sandbox only). |
+| `subsystem.ts` | `Subsystem` (a tuple starting with the Sun) and `withSun`, the normaliser. |
+| `camera.ts` | `clampCamera`: the session's answer to a camera request; free in the sandbox, clamped to the open activity's presets. |
 | `reducer.ts` | the handler list and the one entry point. |
-| `handlers/*.ts` | one module per event family (`place-observer` owns observer identity and colour). |
+| `handlers/*.ts` | one module per event family (`place-observer` owns observer identity and colour, `open-activity` owns the sandbox round trip, `set-setting` validates against the activity, `camera` owns presets and the clamp). |
 | `index.ts` | the public surface; components import only from here. |
+
+## Activities
+
+The catalogue lives in `src/activities/` and is discovered by Vite's
+`import.meta.glob`. `createInitialState` stores it on `state.activities`, so the
+session resolves `activityId` without importing the registry and a test can
+inject a fixture. See `src/activities/README.md` for the declaration recipe.
 
 ## Adding an event family
 
@@ -78,10 +93,15 @@ longitude for a staged observation without making it interactive.
 
 ## Adding a derived observer quantity
 
-Append a contributor to `OBSERVER_CONTRIBUTORS` in `scene-observers.ts`.
-Ticket 16's visibility limit is one such contributor. Keep `sunElevationDeg` and
-`daylight` derived from `observers.ts`'s single dot product: the terminator, the
-POV panel and the night sky must never disagree.
+Append a contributor to `OBSERVER_CONTRIBUTORS` in `scene-observers.ts`. Keep
+`sunElevationDeg` and `daylight` derived from `observers.ts`'s single dot
+product: the terminator, the POV panel and the night sky must never disagree.
+
+The **visibility limit** is not a contributor: it narrows a field another
+contributor already filled, so `scene.ts` maps every entry through
+`withNightSky` (in `night-sky.ts`) after the contributors have run. That pass
+owns `visibleBodies`, `visibilityLimit` and `moon`. It also has the `moon.ts`
+and `visibility.ts` modules behind it; a component draws, it does not decide.
 
 ## The instant
 

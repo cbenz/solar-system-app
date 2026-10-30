@@ -42,6 +42,12 @@ export const fr: Record<MessageKey, string> = {
 	'place.name.arctic': 'Arctique',
 	'place.name.antarctic': 'Antarctique',
 
+	'activity.leave': "Quitter l'activité",
+	'activity.day-and-night.camera.overview': 'La Terre entière',
+	'activity.day-and-night.camera.side': 'De côté',
+	'activity.day-and-night.camera.close': 'De près',
+	'activity.day-and-night.setting.rotation': 'Vitesse de rotation',
+
 	'scale.distancesNotToScale': 'Les distances entre eux sont raccourcies pour que tu puisses tout voir.',
 	'scale.sizesNotToScale': "La Terre, la Lune et le Soleil sont dessinés plus grands qu'en vrai."
 };

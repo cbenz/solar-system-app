@@ -7,7 +7,10 @@
  * `SESSION_HANDLERS`. Nothing else in this file changes.
  */
 
+import { handleCamera } from './handlers/camera';
+import { handleOpenActivity } from './handlers/open-activity';
 import { handlePlaceObserver } from './handlers/place-observer';
+import { handleSetSetting } from './handlers/set-setting';
 import { handleScrubTo } from './handlers/scrub-to';
 import { handleSetLocale } from './handlers/set-locale';
 import { handleToggleScale } from './handlers/toggle-scale';
@@ -19,8 +22,11 @@ import type { SessionEvent, SessionResult, SessionState } from './types';
 export type SessionHandler = (state: SessionState, event: SessionEvent) => SessionState | null;
 
 export const SESSION_HANDLERS: readonly SessionHandler[] = [
+	handleOpenActivity,
 	handleScrubTo,
 	handlePlaceObserver,
+	handleSetSetting,
+	handleCamera,
 	handleSetLocale,
 	handleToggleScale
 ];

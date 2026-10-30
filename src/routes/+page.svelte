@@ -13,6 +13,7 @@
 	import {
 		applyEvent,
 		buildScene,
+		clampCamera,
 		createInitialState,
 		placementTargetId,
 		type SceneSnapshot,
@@ -20,6 +21,7 @@
 		type SessionState
 	} from '$lib/session';
 	import ObserverLabels from '$lib/ui/ObserverLabels.svelte';
+	import ActivityToolbar from '$lib/ui/ActivityToolbar.svelte';
 	import PovDock from '$lib/ui/PovDock.svelte';
 	import ScaleBanner from '$lib/ui/ScaleBanner.svelte';
 	import Timeline from '$lib/ui/Timeline.svelte';
@@ -50,6 +52,10 @@
 
 	onMount(() => {
 		const created = createScene(host, {
+			// The renderer asks; the session decides where the camera may go.
+			clampCamera: (requested) => clampCamera(session, requested),
+			onCameraChange: (camera) => dispatch({ type: 'set-camera', camera }),
+			onOpenActivity: (activityId) => dispatch({ type: 'open-activity', activityId }),
 			onPlacement: placeObserver,
 			onLabelsChange: (labels) => {
 				labelPositions = Object.fromEntries(labels.map((label) => [label.id, label]));
@@ -70,6 +76,7 @@
 
 <div class="scene" bind:this={host}></div>
 <ObserverLabels entries={snapshot.observers} positions={labelPositions} locale={session.locale} />
+<ActivityToolbar session={session} {dispatch} />
 <PovDock observers={snapshot.observers} />
 <ScaleBanner session={session} {dispatch} />
 <Timeline session={session} {dispatch} />

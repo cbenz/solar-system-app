@@ -16,6 +16,7 @@
  */
 
 import type { Locale } from '$lib/i18n/locale';
+import type { Activity } from '../../activities/types';
 
 /**
  * Epoch milliseconds in UTC. A plain number, never a `Date`, and never stored
@@ -61,6 +62,24 @@ export type TimeSpan = {
 export type SessionMode = 'sandbox' | 'activity';
 export type SessionPhase = 'sandbox' | 'guide' | 'mission';
 
+/** The camera's two numbers: distance in drawn Earth radii, pitch in radians. */
+export type CameraState = {
+	distance: number;
+	pitch: number;
+};
+
+/**
+ * What the sandbox looked like when an activity opened. Leaving restores it
+ * exactly, so closing an activity lands the child back where they were.
+ */
+export type SandboxView = {
+	instant: Instant;
+	camera: CameraState;
+	timeSpan: TimeSpan;
+	observers: Observer[];
+	settings: Record<string, number | boolean>;
+};
+
 export type SessionState = {
 	locale: Locale;
 	mode: SessionMode;
@@ -78,6 +97,12 @@ export type SessionState = {
 	 */
 	settings: Record<string, number | boolean>;
 	timeSpan: TimeSpan;
+	/** Where the renderer's camera is; gestures and the activity toolbar both write it. */
+	camera: CameraState;
+	/** The catalogue the session resolves `activityId` against. */
+	activities: readonly Activity[];
+	/** Set while an activity is open; `null` in the sandbox. */
+	sandboxView: SandboxView | null;
 };
 
 /**
@@ -94,6 +119,27 @@ export type SceneBody = {
 	radiusFactor: number;
 };
 
+/**
+ * The Moon as one POV sees it: where it is above the horizon, how much of it is
+ * lit and which way the lit limb points. The POV panel draws this and nothing
+ * else — no phase formulae in a component.
+ */
+export type SceneMoon = {
+	altitudeDeg: number;
+	/** Azimuth measured clockwise from north (0 … 360), for the POV panel. */
+	azimuthDeg: number;
+	illuminatedFraction: number;
+	phaseAngleDeg: number;
+	waxing: boolean;
+	angularDiameterDeg: number;
+	apparentMagnitude: number;
+	/**
+	 * Screen-plane direction from the Moon toward the Sun, in degrees from the
+	 * panel's +x (east) axis, counter-clockwise: the lit limb points that way.
+	 */
+	litLimbAngleDeg: number;
+};
+
 export type SceneObserver = {
 	observer: Observer;
 	sunElevationDeg: number;
@@ -103,11 +149,26 @@ export type SceneObserver = {
 	/** Outward surface normal in the ecliptic frame, for the dot on the globe. */
 	surfaceNormal: Vec3;
 	visibleBodies: BodyId[];
+	/** True when `visibleBodies` is narrowed by the visibility limit. */
+	visibilityLimit: boolean;
+	/** The Moon for this POV, or null when it is not drawn (see `night-sky.ts`). */
+	moon: SceneMoon | null;
+};
+
+/**
+ * Where to draw an activity marker. The marker belongs to a body, not to a
+ * coordinate: the renderer puts it around whichever body the snapshot draws.
+ */
+export type SceneMarker = {
+	activityId: string;
+	bodyId: BodyId;
 };
 
 export type SceneSnapshot = {
 	bodies: SceneBody[];
 	observers: SceneObserver[];
+	markers: SceneMarker[];
+	camera: CameraState;
 };
 
 /**
@@ -123,6 +184,8 @@ export type SessionEvent =
 	| { type: 'place-observer'; povId: string; latitudeDeg: number }
 	| { type: 'switch-subsystem'; subsystem: BodyId[] }
 	| { type: 'set-setting'; key: string; value: number | boolean }
+	| { type: 'set-camera'; camera: CameraState }
+	| { type: 'select-camera-preset'; presetId: string }
 	| { type: 'toggle-true-distance' }
 	| { type: 'toggle-true-size' }
 	| { type: 'set-locale'; locale: Locale };

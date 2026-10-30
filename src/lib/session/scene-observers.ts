@@ -37,6 +37,9 @@ export const OBSERVER_CONTRIBUTORS: readonly ObserverContributor[] = [
 			sunAzimuthDeg: observer.bodyId === 'earth' ? sunAzimuthDeg(observer, state.instant) : 0,
 			daylight: observer.bodyId === 'earth' ? isDaylight(observer, state.instant) : false,
 			surfaceNormal: observerNormal(observer, state.instant),
-			visibleBodies: visibleBodies(state, observer)
+			visibleBodies: visibleBodies(state, observer),
+			// Filled by the night-sky pass in `scene.ts` (ticket 16).
+			visibilityLimit: false,
+			moon: null
 		}))
 ];
