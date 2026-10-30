@@ -4,6 +4,7 @@
  */
 
 import { DEFAULT_LOCALE, type Locale } from '$lib/i18n/locale';
+import { FIRST_POV_ID } from './handlers/place-observer';
 import { nextObserverColour } from './observer-colour';
 import { sandboxSpan } from './time';
 import type { BodyId, Instant, SessionState, TimeSpan } from './types';
@@ -44,7 +45,7 @@ export function createInitialState(options: InitialStateOptions = {}): SessionSt
 		// (ticket 06). Placement reuses the same id and colour.
 		observers: [
 			{
-				id: 'pov-1',
+				id: FIRST_POV_ID,
 				bodyId: 'earth',
 				latitudeDeg: 48.8566,
 				colour: nextObserverColour([])

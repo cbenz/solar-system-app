@@ -13,7 +13,9 @@ export {
 } from './state';
 export type { InitialStateOptions } from './state';
 export { buildScene } from './scene';
-export { MAX_OBSERVERS } from './handlers/place-observer';
+export { FIRST_POV_ID, MAX_OBSERVERS, placementTargetId } from './handlers/place-observer';
+export { pickLatitude, type LatitudePick, type PickedLatitude } from './pick';
+export { POLAR_CIRCLE_DEG, placeName } from './places';
 export { OBSERVER_COLOURS } from './observer-colour';
 export { HORIZON_FRACTION, horizonY, skyToScreen } from './sky';
 export type { SkyPoint, SkyViewport } from './sky';

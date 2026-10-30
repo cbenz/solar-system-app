@@ -30,6 +30,18 @@ export const fr: Record<MessageKey, string> = {
 	'term.true-size': 'Taille réelle',
 	'term.visibility-limit': 'Limite de visibilité',
 
+	'place.name.equator': 'Équateur',
+	'place.name.tropicOfCancer': 'Tropique du Cancer',
+	'place.name.tropicOfCapricorn': 'Tropique du Capricorne',
+	'place.name.northernTropics': 'Tropiques du Nord',
+	'place.name.southernTropics': 'Tropiques du Sud',
+	'place.name.northernTemperate': 'Zone tempérée nord',
+	'place.name.southernTemperate': 'Zone tempérée sud',
+	'place.name.arcticCircle': 'Cercle arctique',
+	'place.name.antarcticCircle': 'Cercle antarctique',
+	'place.name.arctic': 'Arctique',
+	'place.name.antarctic': 'Antarctique',
+
 	'scale.distancesNotToScale': 'Les distances entre eux sont raccourcies pour que tu puisses tout voir.',
 	'scale.sizesNotToScale': "La Terre, la Lune et le Soleil sont dessinés plus grands qu'en vrai."
 };

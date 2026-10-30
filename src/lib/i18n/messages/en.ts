@@ -33,6 +33,18 @@ export const en = {
 	'term.true-size': 'True size',
 	'term.visibility-limit': 'Visibility limit',
 
+	'place.name.equator': 'Equator',
+	'place.name.tropicOfCancer': 'Tropic of Cancer',
+	'place.name.tropicOfCapricorn': 'Tropic of Capricorn',
+	'place.name.northernTropics': 'Northern tropics',
+	'place.name.southernTropics': 'Southern tropics',
+	'place.name.northernTemperate': 'Northern temperate zone',
+	'place.name.southernTemperate': 'Southern temperate zone',
+	'place.name.arcticCircle': 'Arctic Circle',
+	'place.name.antarcticCircle': 'Antarctic Circle',
+	'place.name.arctic': 'Arctic',
+	'place.name.antarctic': 'Antarctic',
+
 	'scale.distancesNotToScale': 'The distances between them are shortened so you can see everything.',
 	'scale.sizesNotToScale': 'The Earth, the Moon and the Sun are drawn bigger than they really are.'
 } as const;
