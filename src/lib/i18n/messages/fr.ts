@@ -48,6 +48,11 @@ export const fr: Record<MessageKey, string> = {
 	'activity.day-and-night.camera.close': 'De près',
 	'activity.day-and-night.setting.rotation': 'Vitesse de rotation',
 
+	'guide.start': 'Commencer le guide',
+	'guide.next': 'Suivant',
+	'guide.mute': 'Couper la voix',
+	'guide.unmute': 'Remettre la voix',
+
 	'scale.distancesNotToScale': 'Les distances entre eux sont raccourcies pour que tu puisses tout voir.',
 	'scale.sizesNotToScale': "La Terre, la Lune et le Soleil sont dessinés plus grands qu'en vrai."
 };

@@ -51,6 +51,11 @@ export const en = {
 	'activity.day-and-night.camera.close': 'Close up',
 	'activity.day-and-night.setting.rotation': 'Rotation speed',
 
+	'guide.start': 'Start the guide',
+	'guide.next': 'Next',
+	'guide.mute': 'Mute the voice',
+	'guide.unmute': 'Turn the voice back on',
+
 	'scale.distancesNotToScale': 'The distances between them are shortened so you can see everything.',
 	'scale.sizesNotToScale': 'The Earth, the Moon and the Sun are drawn bigger than they really are.'
 } as const;
