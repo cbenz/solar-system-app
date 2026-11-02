@@ -124,3 +124,16 @@ which is a gesture (`scene/gesture.ts`), not a control, and is exempt by ticket
   three fixtures and `schema.type-test.ts` updated) because the list has to name
   each activity from the catalogue; an activity without a title is now a
   compile error, in the spirit of ADR-0006.
+
+### Code review follow-up: one thumb
+
+`ActivityToolbar`, `MissionPanel`, `GuidePanel` and `ActivitySettings` are now bottom-anchored.
+
+- Portrait: the toolbar sits just above the POV strip; the mission/guide panel and the settings sit
+  one toolbar-height above it. None covers the timeline or the POV panels.
+- Landscape: the POVs are the right-hand column, so the toolbar uses the remaining width, and the
+  settings sit to the left of that column. Mission/guide panels stay in the space view's share.
+- The settings panel shows only in the activity's sandbox; the guide and the mission have their own
+  panels, so two sets of controls never compete for the same corner.
+- Every control keeps its 44 px minimum. The sandbox body list shows the Sun, Earth and Moon only;
+  the other planets are tapped in the scene, which avoids ten pills on a phone.
