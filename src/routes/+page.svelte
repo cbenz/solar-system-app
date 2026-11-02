@@ -7,6 +7,14 @@
 	import { onMount } from 'svelte';
 	import LanguageSwitch from '$lib/i18n/LanguageSwitch.svelte';
 	import { resolveLocale } from '$lib/i18n/detect';
+	import {
+		createBrowserStorage,
+		fromSession,
+		readStored,
+		writeState,
+		type StorageAdapter
+	} from '$lib/persist/storage';
+	import { resumeOffer } from '$lib/session';
 	import { translate } from '$lib/i18n/translate';
 	import type { PlacementIntent } from '$lib/scene/gesture';
 	import { createScene, type ObserverLabelPosition, type SceneHandle } from '$lib/scene/scene';
@@ -37,6 +45,8 @@
 	import ScaleBanner from '$lib/ui/ScaleBanner.svelte';
 	import SeasonBanner from '$lib/ui/SeasonBanner.svelte';
 	import Timeline from '$lib/ui/Timeline.svelte';
+	import ActivitySidebar from '$lib/ui/ActivitySidebar.svelte';
+	import ResumeBanner from '$lib/ui/ResumeBanner.svelte';
 
 	// The device language decides the first screen (ADR-0006); switching is an event.
 	const deviceLanguage = typeof navigator === 'undefined' ? undefined : navigator.language;
@@ -46,6 +56,42 @@
 	let session = $state<SessionState>(createInitialState({ locale: resolveLocale(deviceLanguage) }));
 	let labelPositions = $state<Record<string, ObserverLabelPosition>>({});
 	const snapshot = $derived<SceneSnapshot>(buildScene(session));
+
+	/**
+	 * Memory (ticket 17): four fields, localStorage only. The store is created on
+	 * mount so the prerendered HTML never touches the browser; `remembered` is
+	 * the last activity the app may offer to resume.
+	 */
+	let store: StorageAdapter | null = null;
+	/** Reactive on purpose: the writing effect must re-run once the store exists. */
+	let storeReady = $state(false);
+	let rememberedActivityId = $state<string | null>(null);
+	let engaged = $state(false);
+
+	const offer = $derived(engaged ? null : resumeOffer(session, rememberedActivityId));
+
+	function isKnownActivity(id: string): boolean {
+		return session.activities.some((activity) => activity.id === id);
+	}
+
+	/** Only the four remembered fields are read here, so scrubbing writes nothing. */
+	$effect(() => {
+		if (!storeReady || store === null) return;
+		writeState(
+			store,
+			fromSession({
+				activityId: session.activityId,
+				locale: session.locale,
+				trueDistance: session.trueDistance,
+				trueSize: session.trueSize
+			})
+		);
+	});
+
+	/** Once the child has opened anything, the resume offer has been made. */
+	$effect(() => {
+		if (session.mode === 'activity') engaged = true;
+	});
 
 	function dispatch(event: SessionEvent): void {
 		const result = applyEvent(session, event);
@@ -96,6 +142,20 @@
 	}
 
 	onMount(() => {
+		// A return visit takes the stored locale and scale toggles; a first visit
+		// keeps the device language and the defaults (ticket 02's rule).
+		store = createBrowserStorage();
+		const stored = readStored(store, isKnownActivity);
+		storeReady = true;
+		if (stored !== null) {
+			session = createInitialState({
+				locale: stored.locale,
+				trueDistance: stored.trueDistance,
+				trueSize: stored.trueSize
+			});
+			rememberedActivityId = stored.activityId;
+		}
+
 		const created = createScene(host, {
 			// The renderer asks; the session decides where the camera may go.
 			clampCamera: (requested) => clampCamera(session, requested),
@@ -133,6 +193,14 @@
 <ScaleBanner session={session} {dispatch} />
 <SeasonBanner season={snapshot.season} locale={session.locale} />
 <Timeline session={session} {dispatch} />
+<ActivitySidebar session={session} {dispatch} />
+{#if offer !== null}
+	<ResumeBanner
+		session={session}
+		activity={offer}
+		onTake={() => dispatch({ type: 'open-activity', activityId: offer.id })}
+	/>
+{/if}
 <LanguageSwitch locale={session.locale} onSelect={(locale) => dispatch({ type: 'set-locale', locale })} />
 
 <style>

@@ -208,6 +208,8 @@ export type MissionSpec = {
 export type Activity = {
 	id: string;
 	level: Level;
+	/** The activity's name in the sidebar list; words live in the catalogues. */
+	title: MessageKey;
 	/** The Sun is implied; `Subsystem` makes its absence a type error. */
 	subsystem: Subsystem;
 	povs: readonly PovSpec[];

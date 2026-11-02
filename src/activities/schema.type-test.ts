@@ -12,6 +12,7 @@ import type { Activity } from './types';
 const complete = {
 	id: 'type-check',
 	level: 1,
+	title: 'term.activity',
 	subsystem: ['sun', 'earth'],
 	povs: [{ id: 'pov-1', bodyId: 'earth', latitudeDeg: 0 }],
 	timeSpan: { from: 0, to: 1 },
@@ -46,3 +47,9 @@ void omittedMissions;
 
 // @ts-expect-error — `missions` is required, even when empty
 export const missingMissions: Activity = missionsRemoved;
+
+const { title: omittedTitle, ...titleRemoved } = complete;
+void omittedTitle;
+
+// @ts-expect-error — `title` is required: every activity is listed by name
+export const missingTitle: Activity = titleRemoved;

@@ -53,6 +53,7 @@ function northernSummer(scene: MissionScene): boolean {
 export default defineActivity({
 	id: 'seasons',
 	level: 4,
+	title: 'activity.seasons.title',
 	subsystem: ['earth'],
 	povs: [
 		{ id: 'paris', bodyId: 'earth', latitudeDeg: PARIS_DEG },

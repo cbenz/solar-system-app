@@ -55,6 +55,7 @@ function shadowPointsWest(scene: MissionScene): boolean | null {
 export default defineActivity({
 	id: 'shadows',
 	level: 2,
+	title: 'activity.shadows.title',
 	// The Sun is implied; the activity needs the Earth and nothing else.
 	subsystem: ['earth'],
 	povs: [

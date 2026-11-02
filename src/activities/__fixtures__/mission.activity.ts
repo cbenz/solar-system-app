@@ -96,6 +96,7 @@ export const nearMission: MissionSpec = {
 export const missionActivity = defineActivity({
 	id: 'mission-fixture',
 	level: 1,
+	title: 'term.mission',
 	subsystem: ['earth'],
 	povs: [{ id: 'mission-pov', bodyId: 'earth', latitudeDeg: 48.8566 }],
 	timeSpan: { from, to: from + DAY },

@@ -10,6 +10,13 @@ export const en = {
 	'language.name.fr': 'Français',
 	'language.switch.action': 'Change language: {language}',
 
+	'sidebar.open': 'All activities',
+	'sidebar.title': 'Activities',
+	'sidebar.close': 'Close the list',
+	'sidebar.level': 'Level {level}',
+	'sidebar.level.badge': 'L{level}',
+	'sidebar.resume': 'Resume: {activity}',
+
 	'time.timeline': 'Timeline',
 	'time.play': 'Play',
 	'time.pause': 'Pause',
@@ -67,6 +74,11 @@ export const en = {
 	'place.name.antarctic': 'Antarctic',
 
 	'activity.leave': 'Leave activity',
+	'activity.day-and-night.title': 'Day and night',
+	'activity.latitudes.title': 'Latitudes',
+	'activity.seasons.title': 'Seasons',
+	'activity.shadows.title': 'Shadows',
+	'activity.eclipses.title': 'Eclipses',
 	'activity.day-and-night.camera.overview': 'Whole Earth',
 	'activity.day-and-night.camera.side': 'From the side',
 	'activity.day-and-night.camera.terminator': 'Above the pole',

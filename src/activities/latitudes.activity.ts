@@ -29,6 +29,7 @@ const SEPTEMBER_EQUINOX = Date.UTC(2025, 8, 22, 18, 19);
 export default defineActivity({
 	id: 'latitudes',
 	level: 2,
+	title: 'activity.latitudes.title',
 	subsystem: ['earth'],
 	povs: [
 		{ id: 'equator', bodyId: 'earth', latitudeDeg: 0 },
