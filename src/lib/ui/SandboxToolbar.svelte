@@ -10,7 +10,11 @@
 	let { session, dispatch }: { session: SessionState; dispatch: (event: SessionEvent) => void } =
 		$props();
 
-	const bodies = $derived(session.subsystem);
+	// The planets are in the map and can be tapped, but only the Sun, the Earth
+	// and the Moon have editable properties; listing all ten would crowd the
+	// toolbar on a phone.
+	const EDITABLE_BODIES: readonly BodyId[] = ['sun', 'earth', 'moon'];
+	const bodies = $derived(session.subsystem.filter((id) => EDITABLE_BODIES.includes(id)));
 </script>
 
 {#if session.mode === 'sandbox'}
@@ -31,6 +35,14 @@
 				{label}
 			</button>
 		{/each}
+
+		<button
+			type="button"
+			class="recenter"
+			onclick={() => dispatch({ type: 'reset-camera' })}
+		>
+			{translate(session.locale, 'camera.reset')}
+		</button>
 	</div>
 {/if}
 
@@ -51,7 +63,8 @@
 		font-size: 0.95rem;
 	}
 
-	.body {
+	.body,
+	.recenter {
 		min-height: 44px;
 		padding: 0 0.9rem;
 		border: 1px solid rgb(255 255 255 / 0.45);
@@ -65,6 +78,11 @@
 		-webkit-tap-highlight-color: transparent;
 	}
 
+	.recenter {
+		border-color: rgb(125 211 252 / 0.7);
+		background: transparent;
+	}
+
 	.body[aria-pressed='true'] {
 		background: #f1f5f9;
 		border-color: #f1f5f9;
@@ -72,7 +90,8 @@
 		font-weight: 600;
 	}
 
-	.body:focus-visible {
+	.body:focus-visible,
+	.recenter:focus-visible {
 		outline: 2px solid #7dd3fc;
 		outline-offset: 3px;
 	}

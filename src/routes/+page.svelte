@@ -42,7 +42,7 @@
 	import SandboxToolbar from '$lib/ui/SandboxToolbar.svelte';
 	import GuidePanel from '$lib/ui/GuidePanel.svelte';
 	import PovDock from '$lib/ui/PovDock.svelte';
-	import ScaleBanner from '$lib/ui/ScaleBanner.svelte';
+	import DistortionBanner from '$lib/ui/DistortionBanner.svelte';
 	import SeasonBanner from '$lib/ui/SeasonBanner.svelte';
 	import Timeline from '$lib/ui/Timeline.svelte';
 	import ActivitySidebar from '$lib/ui/ActivitySidebar.svelte';
@@ -142,7 +142,7 @@
 	}
 
 	onMount(() => {
-		// A return visit takes the stored locale and scale toggles; a first visit
+		// A return visit takes the stored locale and distortion toggles; a first visit
 		// keeps the device language and the defaults (ticket 02's rule).
 		store = createBrowserStorage();
 		const stored = readStored(store, isKnownActivity);
@@ -162,6 +162,7 @@
 			onCameraChange: (camera) => dispatch({ type: 'set-camera', camera }),
 			onOpenActivity: (activityId) => dispatch({ type: 'open-activity', activityId }),
 			onPlacement: placeObserver,
+			onSelectBody: (bodyId) => dispatch({ type: 'select-body', bodyId }),
 			canDragBodies: () => bodyDragEnabled(session),
 			onBodyDrop: dropBody,
 			onLabelsChange: (labels) => {
@@ -190,7 +191,7 @@
 <BodyPropertiesCard session={session} {dispatch} />
 <GuidePanel session={session} {dispatch} />
 <PovDock observers={snapshot.observers} locale={session.locale} />
-<ScaleBanner session={session} {dispatch} />
+<DistortionBanner session={session} {dispatch} />
 <SeasonBanner season={snapshot.season} locale={session.locale} />
 <Timeline session={session} {dispatch} />
 <ActivitySidebar session={session} {dispatch} />
