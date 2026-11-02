@@ -157,6 +157,7 @@ function sunMotif(scene: MissionScene): MissionMotif {
 export default defineActivity({
 	id: 'day-and-night',
 	level: 1,
+	title: 'activity.day-and-night.title',
 	// The Sun is implied; the activity needs the Earth and nothing else.
 	subsystem: ['earth'],
 	povs: [

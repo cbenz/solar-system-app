@@ -14,6 +14,7 @@ import { defineActivity, type Activity } from './types';
 export default defineActivity({
 	id: 'my-activity',
 	level: 2,
+	title: 'activity.my-activity.title', // the sidebar's name for it
 	subsystem: ['earth', 'moon'], // the Sun is added by the normaliser
 	povs: [{ id: 'pov-1', bodyId: 'earth', latitudeDeg: 48.8 }],
 	timeSpan: { from: Date.UTC(2025, 2, 20), to: Date.UTC(2025, 2, 21) },
@@ -30,8 +31,9 @@ export default defineActivity({
 
 - `defineActivity` normalises `subsystem` through `withSun`, and the returned
   type carries a `Subsystem` tuple, so the Sun cannot be absent.
-- Every label is a `MessageKey`; add the keys to both catalogues in
-  `src/lib/i18n/messages/`.
+- `title` is what the sidebar lists the activity as; like every label it is a
+  `MessageKey`, and the words live in both catalogues in
+  `src/lib/i18n/messages/`. A missing `title` fails `pnpm check`.
 - `satisfies Activity` is the compile-time check: a missing field fails
   `pnpm check`. `schema.type-test.ts` holds the negative cases.
 - Tests register fixtures with `createActivityRegistry([fixture])` and

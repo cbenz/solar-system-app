@@ -14,6 +14,7 @@ const from = Date.UTC(2025, 5, 1, 0, 0, 0);
 export const guideActivity = defineActivity({
 	id: 'guide-fixture',
 	level: 1,
+	title: 'term.guide',
 	subsystem: ['earth'],
 	povs: [{ id: 'pov-a', bodyId: 'earth', latitudeDeg: 0 }],
 	timeSpan: { from, to: from + 3 * DAY },

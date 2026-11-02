@@ -7,6 +7,13 @@ export const fr: Record<MessageKey, string> = {
 	'language.name.fr': 'Français',
 	'language.switch.action': 'Changer de langue : {language}',
 
+	'sidebar.open': 'Toutes les activités',
+	'sidebar.title': 'Activités',
+	'sidebar.close': 'Fermer la liste',
+	'sidebar.level': 'Niveau {level}',
+	'sidebar.level.badge': 'N{level}',
+	'sidebar.resume': 'Reprendre : {activity}',
+
 	'time.timeline': 'Chronologie',
 	'time.play': 'Lecture',
 	'time.pause': 'Pause',
@@ -64,6 +71,11 @@ export const fr: Record<MessageKey, string> = {
 	'place.name.antarctic': 'Antarctique',
 
 	'activity.leave': "Quitter l'activité",
+	'activity.day-and-night.title': 'Le jour et la nuit',
+	'activity.latitudes.title': 'Les latitudes',
+	'activity.seasons.title': 'Les saisons',
+	'activity.shadows.title': 'Les ombres',
+	'activity.eclipses.title': 'Les éclipses',
 	'activity.day-and-night.camera.overview': 'La Terre entière',
 	'activity.day-and-night.camera.side': 'De côté',
 	'activity.day-and-night.camera.terminator': 'Au-dessus du pôle',

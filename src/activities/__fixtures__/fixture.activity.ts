@@ -13,6 +13,7 @@ const from = Date.UTC(2025, 5, 1, 0, 0, 0);
 export const fixtureActivity = defineActivity({
 	id: 'fixture',
 	level: 2,
+	title: 'term.activity',
 	subsystem: ['earth'],
 	povs: [{ id: 'fixture-pov', bodyId: 'earth', latitudeDeg: 0 }],
 	timeSpan: { from, to: from + 2 * 86_400_000 },

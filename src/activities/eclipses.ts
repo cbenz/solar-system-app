@@ -106,6 +106,7 @@ function degreesFromTotality(scene: MissionScene): number {
 export default defineActivity({
 	id: 'eclipses',
 	level: 5,
+	title: 'activity.eclipses.title',
 	// The alignment is a Sun–Earth–Moon thing; nothing else needs to be drawn.
 	subsystem: ['earth', 'moon'],
 	povs: [
