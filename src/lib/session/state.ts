@@ -31,6 +31,9 @@ export type InitialStateOptions = {
 	settings?: Record<string, number | boolean>;
 	/** The catalogue the session resolves activity ids against. Tests inject fixtures. */
 	activities?: readonly Activity[];
+	/** Restored from the persistence module (see `$lib/persist/storage.ts`). */
+	trueDistance?: boolean;
+	trueSize?: boolean;
 };
 
 export function createInitialState(options: InitialStateOptions = {}): SessionState {
@@ -43,8 +46,8 @@ export function createInitialState(options: InitialStateOptions = {}): SessionSt
 		phase: 'sandbox',
 		guideStep: null,
 		instant: options.instant ?? DEFAULT_INSTANT,
-		trueDistance: false,
-		trueSize: false,
+		trueDistance: options.trueDistance ?? false,
+		trueSize: options.trueSize ?? false,
 		subsystem: [...DEFAULT_SUBSYSTEM],
 		// One observer for ticket 05 so a POV is visible before placement exists
 		// (ticket 06). Placement reuses the same id and colour.

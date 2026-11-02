@@ -35,6 +35,7 @@ concern. Do not grow a god-reducer; add a file and append it to a list.
 | `snap.ts` | the pure `snap(instant, snapPoints, ratio)` rule. |
 | `snap-points.ts` | which instants are worth snapping to, for a session state. |
 | `state.ts` | `createInitialState`, `reconcileTimeSpan` (span and instant normalisation). |
+| `resume.ts` | `resumeOffer`: which remembered activity may be offered as "resume", and when there is nothing to offer. |
 | `scene.ts` | composes `scene-bodies.ts`, `scene-observers.ts` and `scene-markers.ts` into a `SceneSnapshot`. |
 | `scene-markers.ts` | which activity markers are drawn on which bodies (sandbox only). |
 | `subsystem.ts` | `Subsystem` (a tuple starting with the Sun) and `withSun`, the normaliser. |
@@ -147,6 +148,16 @@ way home.
 `state.phase` is `'mission'` while a mission runs and `state.mission` carries the
 mission phase; the two are set and cleared together. A mission starts only from
 the activity's sandbox — never from the guide, never on top of another mission.
+
+## Memory
+
+The app remembers four fields across visits — the last activity, the locale and
+the two scale toggles — through the pure module in `src/lib/persist/storage.ts`.
+No instant, no camera and no mission is stored, so "the last activity comes
+back" means: a return visit opens on the Earth as a first visit does, with a
+visible resume control naming that activity; taking it dispatches the ordinary
+`open-activity`. `resumeOffer` owns the rule (sandbox only, known id only); the
+page owns the storage adapter and the "offer already made" flag.
 
 ## The instant
 

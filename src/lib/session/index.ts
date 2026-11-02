@@ -58,6 +58,7 @@ export {
 	sunlightDirection,
 	tiltDegFromSettings
 } from './seasons';
+export { resumeOffer } from './resume';
 export { observersFromPovs } from './povs';
 export { EQUATOR_CIRCLE_ID, circlesFor } from './circles';
 export {
