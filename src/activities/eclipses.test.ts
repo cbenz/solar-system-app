@@ -208,7 +208,7 @@ describe('the Moon’s orbit is drawn, and it is inclined', () => {
 		expect(radius(ecliptic.points)).toBeCloseTo(radius(moonOrbit.points), 12);
 		expect(ecliptic.points.every((point) => point.z === 0)).toBe(true);
 		expect(moonOrbit.points.some((point) => Math.abs(point.z) > 0)).toBe(true);
-		// Both rings are drawn at the Moon's readable separation (`scale.ts`).
+		// Both rings are drawn at the Moon's readable separation (`distortion.ts`).
 		expect(moonOrbit.distanceFactor).toBeGreaterThan(1);
 		expect(ecliptic.distanceFactor).toBe(moonOrbit.distanceFactor);
 	});

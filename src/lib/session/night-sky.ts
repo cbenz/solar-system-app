@@ -17,7 +17,7 @@
  * imports nothing; the session still touches no Three.js, no DOM and no Svelte.
  */
 
-import { mulberry32 } from '$lib/scene/random';
+import { mulberry32 } from '$lib/random';
 import {
 	moonAngularDiameterDeg,
 	moonApparentMagnitude,
@@ -43,10 +43,10 @@ import type {
 } from './types';
 
 /** Seed of the decorative night-sky stars. Fixed: the sky is a place, not a slot machine. */
-export const NIGHT_SKY_SEED = 0x5c1e57a2;
+export const DECORATIVE_STAR_SEED = 0x5c1e57a2;
 
 /** How many decorative stars sit above the horizon. */
-export const NIGHT_SKY_STAR_COUNT = 90;
+export const DECORATIVE_STAR_COUNT = 90;
 
 export type SkyStar = {
 	/** Altitude above the horizon, in degrees (0 … 90). */
@@ -65,7 +65,7 @@ export type SkyStar = {
  * [0, 1), so no part of the sky is over-dense. Nothing here is a real star
  * catalogue, and that is deliberate.
  */
-export function starField(seed: number, count: number = NIGHT_SKY_STAR_COUNT): SkyStar[] {
+export function decorativeStars(seed: number, count: number = DECORATIVE_STAR_COUNT): SkyStar[] {
 	const random = mulberry32(seed);
 
 	return Array.from({ length: count }, () => ({
@@ -91,7 +91,9 @@ export function apparentMagnitudeOf(instant: Instant, id: BodyId): number | null
 			return SUN_APPARENT_MAGNITUDE;
 		case 'moon':
 			return moonApparentMagnitude(instant);
-		case 'earth':
+		default:
+			// The model gives the other bodies no apparent magnitude; the limit
+			// leaves them alone rather than inventing a number.
 			return null;
 	}
 }

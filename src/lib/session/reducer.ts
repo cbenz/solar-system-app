@@ -16,7 +16,7 @@ import { handleSandboxEditing } from './handlers/sandbox-editing';
 import { handleSetSetting } from './handlers/set-setting';
 import { handleScrubTo } from './handlers/scrub-to';
 import { handleSetLocale } from './handlers/set-locale';
-import { handleToggleScale } from './handlers/toggle-scale';
+import { handleToggleDistortion } from './handlers/toggle-distortion';
 import { buildScene } from './scene';
 import { reconcileTimeSpan } from './state';
 import type { SessionEvent, SessionResult, SessionState } from './types';
@@ -32,7 +32,7 @@ export const SESSION_HANDLERS: readonly SessionHandler[] = [
 	handleSetSetting,
 	handleCamera,
 	handleSetLocale,
-	handleToggleScale,
+	handleToggleDistortion,
 	handleMission,
 	handleSandboxEditing
 ];

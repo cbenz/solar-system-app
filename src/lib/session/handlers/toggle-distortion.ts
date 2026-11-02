@@ -1,5 +1,5 @@
 /**
- * `toggle-true-distance` and `toggle-true-size`: the two scale switches
+ * `toggle-true-distance` and `toggle-true-size`: the two distortion switches
  * (ADR-0003).
  *
  * They are separate on purpose — one scene can show real distances with
@@ -10,7 +10,7 @@
 
 import type { SessionEvent, SessionState } from '../types';
 
-export function handleToggleScale(state: SessionState, event: SessionEvent): SessionState | null {
+export function handleToggleDistortion(state: SessionState, event: SessionEvent): SessionState | null {
 	if (event.type === 'toggle-true-distance') {
 		return { ...state, trueDistance: !state.trueDistance };
 	}

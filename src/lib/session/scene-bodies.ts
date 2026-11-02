@@ -13,15 +13,15 @@
  * sandbox-only for the same reason.
  */
 
-import { earthHeliocentricPositionAu } from './ephemeris';
+import { earthHeliocentricPositionAu, planetHeliocentricPositionAu } from './ephemeris';
 import {
 	bodyPositionAu,
 	escapedTrack,
 	hasEscaped
 } from './sandbox';
 import { placedMoonHeliocentricAu } from './eclipse';
-import { bodyScale } from './scale';
-import type { BodyId, SessionState, Vec3 } from './types';
+import { bodyDistortion } from './distortion';
+import { PLANET_IDS, type BodyId, type SessionState, type Vec3 } from './types';
 
 export type BodyContributor = (state: SessionState) => {
 	id: BodyId;
@@ -33,13 +33,13 @@ export type BodyContributor = (state: SessionState) => {
 } | null;
 
 /**
- * Positions stay true in the snapshot; the two scale factors ride along and the
- * renderer multiplies by them. Nothing is distorted here, so turning a scale
+ * Positions stay true in the snapshot; the two distortion factors ride along and the
+ * renderer multiplies by them. Nothing is distorted here, so turning a distortion
  * switch cannot move a body in the snapshot — it only changes a factor
- * (ADR-0003, `scale.ts`).
+ * (ADR-0003, `distortion.ts`).
  */
 function drawnBody(state: SessionState, id: BodyId, position: Vec3) {
-	const { distanceFactor, radiusFactor } = bodyScale(state.trueDistance, state.trueSize, id);
+	const { distanceFactor, radiusFactor } = bodyDistortion(state.trueDistance, state.trueSize, id);
 	const sandbox = state.mode === 'sandbox';
 
 	return {
@@ -95,5 +95,16 @@ export const BODY_CONTRIBUTORS: readonly BodyContributor[] = [
 	(state) =>
 		inSubsystem(state, 'moon')
 			? drawnBody(state, 'moon', moonPosition(state))
+			: null,
+	...PLANET_IDS.map<BodyContributor>((planet) => (state) =>
+		inSubsystem(state, planet)
+			? drawnBody(
+					state,
+					planet,
+					state.mode === 'sandbox'
+						? sandboxPosition(state, planet)
+						: planetHeliocentricPositionAu(planet, state.instant)
+				)
 			: null
+	)
 ];

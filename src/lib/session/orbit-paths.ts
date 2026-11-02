@@ -24,7 +24,7 @@ import { currentActivity } from './camera';
 import { eclipticPathAu, moonOrbitPathAu } from './eclipse';
 import { earthHeliocentricPositionAu } from './ephemeris';
 import { MS_PER_DAY } from './time';
-import { bodyScale } from './scale';
+import { bodyDistortion } from './distortion';
 import type { Instant, SceneOrbitPath, SessionState, Vec3 } from './types';
 
 /** Samples of the Earth's orbit around the Sun. A year is a closed loop. */
@@ -60,8 +60,8 @@ export function orbitPathsFor(state: SessionState): SceneOrbitPath[] {
 	const specs = activity?.orbitPaths ?? [];
 	if (specs.length === 0) return [];
 
-	const earthFactor = bodyScale(state.trueDistance, state.trueSize, 'earth').distanceFactor;
-	const moonFactor = bodyScale(state.trueDistance, state.trueSize, 'moon').distanceFactor;
+	const earthFactor = bodyDistortion(state.trueDistance, state.trueSize, 'earth').distanceFactor;
+	const moonFactor = bodyDistortion(state.trueDistance, state.trueSize, 'moon').distanceFactor;
 
 	return specs.map((spec) => {
 		switch (spec.kind) {

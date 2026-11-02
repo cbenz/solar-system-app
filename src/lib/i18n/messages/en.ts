@@ -25,6 +25,8 @@ export const en = {
 	'time.span.month': 'a month',
 	'time.span.year': 'a year',
 
+	'camera.reset': 'Good view',
+
 	'term.activity': 'Activity',
 	'term.camera-preset': 'Camera preset',
 	'term.guide': 'Guide',
@@ -41,8 +43,15 @@ export const en = {
 	'term.visibility-limit': 'Visibility limit',
 
 	'body.sun': 'Sun',
+	'body.mercury': 'Mercury',
+	'body.venus': 'Venus',
 	'body.earth': 'Earth',
 	'body.moon': 'Moon',
+	'body.mars': 'Mars',
+	'body.jupiter': 'Jupiter',
+	'body.saturn': 'Saturn',
+	'body.uranus': 'Uranus',
+	'body.neptune': 'Neptune',
 
 	'sandbox.properties': 'Properties',
 	'sandbox.properties.open': 'Properties of {body}',
@@ -93,6 +102,10 @@ export const en = {
 	'activity.day-and-night.guide.nextNoon': 'A whole turn later, it is noon again.',
 	'activity.day-and-night.guide.backToDark':
 		'And here comes the shadow again. Night is never far behind.',
+	'activity.day-and-night.guide.polarDay':
+		'Now go up to the Polar Circle. In June the Sun goes round without setting: a whole day with no night.',
+	'activity.day-and-night.guide.polarNight':
+		'Half a year later, at the same place, the Sun never rises. The timeline now holds both solstices: walk back and forth between a day with no night and a night with no day.',
 
 	'mission.day-and-night.noon.label': 'Noon where I am',
 	'mission.day-and-night.noon.brief': 'Move time until the Sun reaches its highest point where you are.',
@@ -212,7 +225,7 @@ export const en = {
 	'activity.seasons.mission.closest.label': 'The closest day',
 	'activity.seasons.mission.closest.brief': 'Find the day when the Earth is closest to the Sun.',
 	'activity.seasons.mission.closest.prediction':
-		'When is the Earth closest to the Sun? Put the timeline in that season, then tell the app.',
+		'Before moving anything: when do you believe the Earth is closest to the Sun? Lock in that belief.',
 	'activity.seasons.mission.closest.claim.summer': 'In summer: the Earth is closest to the Sun.',
 	'activity.seasons.mission.closest.claim.winter': 'In winter: the Earth is closest to the Sun.',
 	'activity.seasons.mission.closest.observe':
@@ -224,6 +237,8 @@ export const en = {
 	'activity.seasons.mission.closest.right':
 		'That is early January: the Earth is closest to the Sun in the northern winter.',
 	'activity.seasons.scene.distance': 'Earth–Sun distance: {distance} million km',
+	'activity.seasons.scene.daylight':
+		'June minus December daylight at {place}: {minutes} minutes of sunlight.',
 	'activity.seasons.scene.notRealOrbit':
 		'This orbit is exaggerated on purpose. The real orbit is almost a circle, and it is not what makes the seasons.',
 
@@ -246,7 +261,7 @@ export const en = {
 	'activity.eclipses.mission.lineUp.brief':
 		'Place the Moon so that it hides the Sun from the first observer.',
 	'activity.eclipses.mission.lineUp.prediction':
-		'Put the Moon where you think it has to be, then lock in your guess.',
+		'Before moving the Moon: where do you believe it has to be? Lock in that belief.',
 	'activity.eclipses.mission.lineUp.claim.moonInFront':
 		'The Moon has to be between the Earth and the Sun.',
 	'activity.eclipses.mission.lineUp.claim.earthInFront':
@@ -261,8 +276,8 @@ export const en = {
 
 	'pov.sunHeight': 'Sun height: {height}°',
 
-	'scale.distancesNotToScale': 'The distances between them are shortened so you can see everything.',
-	'scale.sizesNotToScale': 'The Earth, the Moon and the Sun are drawn bigger than they really are.'
+	'distortion.distancesNotToScale': 'The distances between them are shortened so you can see everything.',
+	'distortion.sizesNotToScale': 'The Earth, the Moon and the Sun are drawn bigger than they really are.'
 } as const;
 
 export type MessageKey = keyof typeof en;

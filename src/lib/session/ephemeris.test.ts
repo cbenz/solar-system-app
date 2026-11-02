@@ -4,9 +4,11 @@ import {
 	earthHeliocentricPositionAu,
 	earthSunDistanceAu,
 	moonGeocentricPositionAu,
+	planetHeliocentricPositionAu,
 	solarDeclinationDeg,
 	sunLongitudeDeg
 } from './ephemeris';
+import { PLANET_IDS } from './types';
 import { julianDay } from './time';
 
 /**
@@ -204,5 +206,41 @@ describe('the Moon', () => {
 	it('is the Julian Day the ephemeris reads, not a Date', () => {
 		expect(julianDay(Date.UTC(2000, 0, 1, 12, 0, 0))).toBeCloseTo(2_451_545.0, 6);
 		expect(julianDay(Date.UTC(1987, 0, 27, 0, 0, 0))).toBeCloseTo(2_446_822.5, 6);
+	});
+});
+
+
+describe('the other planets in the map', () => {
+	it('puts each planet near its published distance from the Sun', () => {
+		const instant = Date.parse('2025-01-01T00:00:00Z');
+		// Approximate 2025 heliocentric distances in AU (JPL mean elements;
+		// the ranges swallow each orbit's eccentricity).
+		const expected: Record<string, [number, number]> = {
+			mercury: [0.31, 0.47],
+			venus: [0.72, 0.73],
+			mars: [1.38, 1.67],
+			jupiter: [4.95, 5.46],
+			saturn: [9.0, 10.1],
+			uranus: [18.3, 20.1],
+			neptune: [29.8, 30.4]
+		};
+
+		for (const planet of PLANET_IDS) {
+			const position = planetHeliocentricPositionAu(planet, instant);
+			const distance = Math.hypot(position.x, position.y, position.z);
+			const [min, max] = expected[planet]!;
+			expect(distance, planet).toBeGreaterThan(min);
+			expect(distance, planet).toBeLessThan(max);
+			expect(Number.isFinite(position.z), planet).toBe(true);
+		}
+	});
+
+	it('is deterministic: the same instant gives the same position', () => {
+		const instant = Date.parse('2025-06-21T02:42:00Z');
+		for (const planet of PLANET_IDS) {
+			expect(planetHeliocentricPositionAu(planet, instant)).toEqual(
+				planetHeliocentricPositionAu(planet, instant)
+			);
+		}
 	});
 });

@@ -77,6 +77,18 @@ describe('the prediction', () => {
 		);
 	});
 
+	it('reads the scene frozen when the mission started, not the live one', () => {
+		// Start in the morning, then move to noon before committing. The frozen
+		// starting view still says morning: stating a belief never needs a prior
+		// manipulation (ADR-0004 rule 4).
+		const moved = scrubTo(started(), NOON);
+		const predicted = applyEvent(moved, { type: 'record-prediction' }).state;
+
+		expect(predicted.mission?.prediction?.propositionId).toBe('morning');
+		expect(predicted.mission?.prediction?.instant).toBe(MORNING);
+		expect(predicted.mission?.predictionScene.instant).toBe(MORNING);
+	});
+
 	it('is recorded once: a second commit does not overwrite it', () => {
 		const predicted = committed();
 

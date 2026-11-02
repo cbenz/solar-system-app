@@ -102,9 +102,13 @@
 {/if}
 
 <style>
+	/* One thumb: above the toolbar, which is itself above the POV strip. */
 	.guide-panel {
 		position: fixed;
-		top: calc(4.75rem + env(safe-area-inset-top));
+		bottom: calc(
+			var(--timeline-height, 8rem) + clamp(9rem, 28vh, 16rem) + 4.5rem +
+				env(safe-area-inset-bottom)
+		);
 		left: calc(1rem + env(safe-area-inset-left));
 		z-index: 9;
 		display: flex;
@@ -199,9 +203,15 @@
 		outline-offset: 3px;
 	}
 
+	@media (orientation: landscape) {
+		.guide-panel {
+			bottom: calc(var(--timeline-height, 6rem) + 0.5rem + env(safe-area-inset-bottom));
+			max-width: min(22rem, 45vw);
+		}
+	}
+
 	@media (orientation: landscape) and (max-height: 30rem) {
 		.guide-panel {
-			max-width: min(22rem, 45vw);
 			font-size: 0.9rem;
 		}
 	}

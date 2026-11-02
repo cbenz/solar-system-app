@@ -14,7 +14,7 @@ function cross(a: Vec3, b: Vec3): Vec3 {
 }
 
 describe('sunlight arrives as parallel rays', () => {
-	const bundle = parallelSunRays(JUNE_SOLSTICE, { count: 7, halfWidthAu: 1.5 * EARTH_RADIUS_AU });
+	const bundle = parallelSunRays(JUNE_SOLSTICE);
 	const expected = sunlightDirection(JUNE_SOLSTICE);
 
 	it('uses one direction for every ray, the Sun-to-Earth direction', () => {

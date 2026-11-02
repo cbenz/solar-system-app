@@ -75,7 +75,7 @@ session owns the phases.
 ```
 
 - A predicate reads `MissionScene` only: instant, time span, camera, observers,
-  settings, the two scale toggles, the subsystem. It cannot read the mission
+  settings, the two distortion toggles, the subsystem. It cannot read the mission
   phase, which is what stops a predicate from depending on itself.
 - `discrete` answers yes or no; `continuous` reports a signed distance from the
   target in the mission's units. `closeTolerance` must be at least `tolerance`.

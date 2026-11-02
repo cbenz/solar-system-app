@@ -3,8 +3,10 @@ import {
 	DEFAULT_CAMERA,
 	DRAWN_EARTH_RADIUS_AU,
 	pickLatitude,
+	PLANET_IDS,
 	trueRadiusAu,
 	type BodyId,
+	type PlanetId,
 	type CameraState,
 	type Observer,
 	type SceneBody,
@@ -39,7 +41,7 @@ import {
  * One scene unit is the Earth's radius in the readable default, so the camera
  * framing ticket 01 chose keeps working. Distances and radii are never
  * distorted here: the session's snapshot carries the two factors and this file
- * only multiplies (`src/lib/session/scale.ts`, ADR-0003).
+ * only multiplies (`src/lib/session/distortion.ts`, ADR-0003).
  */
 const UNITS_PER_AU = 1 / DRAWN_EARTH_RADIUS_AU;
 const EARTH_RADIUS = 1;
@@ -74,6 +76,8 @@ export type SceneOptions = {
 	onPlacement?: (intent: PlacementIntent) => void;
 	/** Whether a body may be dragged right now (sandbox only). */
 	canDragBodies?: () => boolean;
+	/** A body was tapped: the page opens its properties card in the sandbox. */
+	onSelectBody?: (bodyId: BodyId) => void;
 	/**
 	 * A dragged body's new position, in AU **relative to the Earth** (the drawn
 	 * frame's origin). The page turns it into `move-body` or `drop-body`.
@@ -130,6 +134,7 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 	const sunGeometry = new THREE.SphereGeometry(1, 48, 32);
 	const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xfff2c4 });
 	const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+	sun.userData.bodyId = 'sun';
 	scene.add(sun);
 
 	// The Moon is drawn too, small but draggable: the sandbox needs a body the
@@ -137,7 +142,43 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 	const moonGeometry = new THREE.SphereGeometry(1, 32, 24);
 	const moonMaterial = new THREE.MeshStandardMaterial({ color: 0xbfc3c9, roughness: 1 });
 	const moon = new THREE.Mesh(moonGeometry, moonMaterial);
+	moon.userData.bodyId = 'moon';
 	scene.add(moon);
+
+	// The other planets are part of the map: the child pinches out from the
+	// Earth to find them and taps one to read its name. They carry no
+	// activities, and their sizes and distances are distorted like every other
+	// body's (ADR-0003).
+	const PLANET_COLOURS: Record<PlanetId, number> = {
+		mercury: 0x9a9a94,
+		venus: 0xe7c98b,
+		mars: 0xc1683f,
+		jupiter: 0xd9b38c,
+		saturn: 0xe3d3a2,
+		uranus: 0x9fd8de,
+		neptune: 0x6f8ee8
+	};
+	const planetGeometry = new THREE.SphereGeometry(1, 32, 24);
+	const planetMaterials = new Map<PlanetId, THREE.MeshStandardMaterial>();
+	const planetMeshes = new Map<PlanetId, THREE.Mesh>();
+
+	function planetMesh(id: PlanetId): THREE.Mesh {
+		const cached = planetMeshes.get(id);
+		if (cached !== undefined) return cached;
+
+		const material = new THREE.MeshStandardMaterial({
+			color: PLANET_COLOURS[id],
+			roughness: 1,
+			metalness: 0
+		});
+		const mesh = new THREE.Mesh(planetGeometry, material);
+		mesh.userData.bodyId = id;
+		mesh.visible = false;
+		planetMaterials.set(id, material);
+		planetMeshes.set(id, mesh);
+		scene.add(mesh);
+		return mesh;
+	}
 
 	// The visible track of an escaped body: it leaves the orbit and does not
 	// come back, which is exactly what the sandbox is demonstrating.
@@ -283,8 +324,9 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 	sunlight.position.copy(sun.position);
 	scene.add(sunlight);
 
-	// Deliberately far below the directional light: the night half must be dark.
-	scene.add(new THREE.AmbientLight(0xffffff, 0.04));
+	// No fill light and no ambient term: nothing emits light except the Sun
+	// (ADR-0004 rule 2). The night half is dark because it faces away from the
+	// only light there is.
 
 	const stars = createStarfield();
 	scene.add(stars);
@@ -326,7 +368,7 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 
 	/**
 	 * A body's drawn offset from the Earth, using **that body's** distance factor.
-	 * The Moon's orbit is drawn at a readable radius (`scale.ts`), so it cannot
+	 * The Moon's orbit is drawn at a readable radius (`distortion.ts`), so it cannot
 	 * ride on the Earth's factor.
 	 */
 	function drawnOffsetOf(body: SceneBody, earthPosition: Vec3): THREE.Vector3 {
@@ -459,7 +501,7 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 		}
 
 		// The Moon carries its own distance factor (its orbit is drawn at a readable
-		// radius, see `scale.ts`), so its offset is scaled by that factor and not by
+		// radius, see `distortion.ts`), so its offset is scaled by that factor and not by
 		// the Earth's.
 		const moonBody = snapshot.bodies.find((body) => body.id === 'moon');
 		moon.visible = moonBody !== undefined;
@@ -467,6 +509,19 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 			moon.position.copy(drawnOffsetOf(moonBody, earthBody.position));
 			moon.scale.setScalar(drawnRadius(moonBody));
 			drawScales.set('moon', moonBody.distanceFactor * UNITS_PER_AU);
+		}
+
+		// The planets of the map. Each rides its own distance factor, exactly as
+		// the Moon does, so the readable default stays readable all the way out.
+		for (const id of PLANET_IDS) {
+			const mesh = planetMesh(id);
+			const body = snapshot.bodies.find((candidate) => candidate.id === id);
+			mesh.visible = body !== undefined;
+			if (body === undefined) continue;
+
+			mesh.position.copy(drawnOffsetOf(body, earthBody.position));
+			mesh.scale.setScalar(drawnRadius(body));
+			drawScales.set(id, body.distanceFactor * UNITS_PER_AU);
 		}
 
 		// The orbit rings an activity asks for: drawn in the same frame, each with
@@ -577,6 +632,31 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 			scene.remove(ring);
 			markerRings.delete(key);
 		}
+	}
+
+	// --- Body taps ----------------------------------------------------------
+	// A tap on a planet (or the Sun) names it: the page opens the properties
+	// card. The Earth is excluded — a tap there places an observer — and the
+	// Moon is dragged rather than tapped in the sandbox.
+
+	const bodyPicker = new THREE.Raycaster();
+
+	function bodyAt(event: PointerEvent): BodyId | undefined {
+		const bounds = canvas.getBoundingClientRect();
+		if (bounds.width <= 0 || bounds.height <= 0) return undefined;
+
+		pointerNdc.set(
+			((event.clientX - bounds.left) / bounds.width) * 2 - 1,
+			-((event.clientY - bounds.top) / bounds.height) * 2 + 1
+		);
+		bodyPicker.setFromCamera(pointerNdc, camera);
+
+		const candidates: THREE.Object3D[] = [sun, moon, ...planetMeshes.values()].filter(
+			(object) => object.visible
+		);
+		const hit = bodyPicker.intersectObjects(candidates, false)[0];
+		const id = hit?.object.userData.bodyId;
+		return typeof id === 'string' ? (id as BodyId) : undefined;
 	}
 
 	// --- Marker taps --------------------------------------------------------
@@ -954,7 +1034,13 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 
 		if (start === undefined || moved) return;
 		const activityId = markerAt(event);
-		if (activityId !== undefined) options.onOpenActivity?.(activityId);
+		if (activityId !== undefined) {
+			options.onOpenActivity?.(activityId);
+			return;
+		}
+
+		const bodyId = bodyAt(event);
+		if (bodyId !== undefined) options.onSelectBody?.(bodyId);
 	}
 
 	function onPointerCancel(event: PointerEvent): void {
@@ -1074,6 +1160,11 @@ export function createScene(host: HTMLElement, options: SceneOptions = {}): Scen
 			sunMaterial.dispose();
 			moonGeometry.dispose();
 			moonMaterial.dispose();
+			for (const mesh of planetMeshes.values()) scene.remove(mesh);
+			planetMeshes.clear();
+			planetGeometry.dispose();
+			for (const material of planetMaterials.values()) material.dispose();
+			planetMaterials.clear();
 			trackMaterial.dispose();
 			orbitLine.geometry.dispose();
 			orbitMaterial.dispose();

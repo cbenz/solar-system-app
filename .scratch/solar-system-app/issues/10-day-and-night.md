@@ -39,3 +39,12 @@
   the predictions; `sunAzimuthDeg` now uses it, so there is one hour-angle implementation.
 - The optional `motif` on `MissionSpec` and the corresponding `motif` field on `SceneMission` are
   additive; missions without one render exactly as before.
+
+### Code review follow-up
+
+The guide now reaches the polar night itself. A `GuideStep.apply` may declare an optional
+`timeSpan` (still the activity's own data, ADR-0001); the last two day-and-night steps move the
+observer to the derived Polar Circle, show the June solstice, then widen the timeline to hold both
+solstices and land on the December solstice. `day-and-night.test.ts` walks that guide end to end and
+asserts a night with no day, so the "six months later" checkbox is no longer ticked by a session
+opened directly at December.

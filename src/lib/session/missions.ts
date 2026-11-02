@@ -91,6 +91,24 @@ export function matchPrediction(
 	return spec.propositions.find((proposition) => proposition.holds(scene));
 }
 
+/**
+ * A copy of the child-manipulable scene, frozen for the prediction phase. The
+ * copy is shallow per object but deep enough: session state is never mutated in
+ * place, so later instants, settings and observers arrive as new objects.
+ */
+export function freezeMissionScene(state: SessionState): MissionScene {
+	return {
+		instant: state.instant,
+		timeSpan: { ...state.timeSpan },
+		camera: { ...state.camera },
+		observers: state.observers.map((observer) => ({ ...observer })),
+		settings: { ...state.settings },
+		trueDistance: state.trueDistance,
+		trueSize: state.trueSize,
+		subsystem: [...state.subsystem]
+	};
+}
+
 /** The mission a state's progress refers to, resolved from the activity data. */
 export function missionOf(state: SessionState, missionId: string): MissionSpec | undefined {
 	return currentActivity(state)?.missions.find((mission) => mission.id === missionId);

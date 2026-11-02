@@ -42,6 +42,8 @@ export type PovSpec = {
 	bodyId: BodyId;
 	latitudeDeg: number;
 	longitudeDeg?: number;
+	/** Optional name key for the place, where the activity knows it (Paris). */
+	label?: MessageKey;
 };
 
 /**
@@ -96,6 +98,12 @@ export type GuideStep = {
 		/** Only where the activity declares a tilt setting. */
 		tilt?: number;
 		povs?: PovSpec[];
+		/**
+		 * Widen (or narrow) the timeline for this step. The span is still the
+		 * activity's own data: a step may declare the window its phenomenon needs,
+		 * such as the months between the two solstices.
+		 */
+		timeSpan?: { fromInstant: Instant; toInstant: Instant };
 	};
 	waitForChild: boolean;
 };
@@ -218,6 +226,12 @@ export type Activity = {
 	latitudeCircles?: readonly LatitudeCircleSpec[];
 	/** Orbit rings this activity draws; none are drawn by default. */
 	orbitPaths?: readonly OrbitPathSpec[];
+	/**
+	 * Whether the POVs draw the gnomon (a stick and its shadow). Declared by the
+	 * activity's data: only Shadows asks for it, so every other activity shows a
+	 * clean horizon.
+	 */
+	gnomon?: boolean;
 	cameraPresets: readonly CameraPreset[];
 	settings: readonly SettingSpec[];
 	guide: readonly GuideStep[];

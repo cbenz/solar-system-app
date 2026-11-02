@@ -148,6 +148,8 @@ describe('the day-and-night activity', () => {
 			true,
 			true,
 			true,
+			true,
+			true,
 			false
 		]);
 	});
@@ -196,6 +198,32 @@ describe('polar day and polar night at the derived Polar Circle', () => {
 		// Twenty hundredths of a degree farther south the Sun does rise.
 		const justInside = observerAt(POLAR_CIRCLE_DEG - 0.02);
 		expect(daylightMinutes(justInside, december, december + DAY)).toBeGreaterThanOrEqual(15);
+	});
+
+	it('walks the guide itself to the December solstice and shows the polar night', () => {
+		// End to end: open the activity, move to the Polar Circle, then press next
+		// through the guide. The last step widens the timeline to the December
+		// solstice, so ticket 10's "six months later" checkbox is ticked by the
+		// guide the child actually uses, not by a session opened there directly.
+		const opened = applyEvent(openedActivity(), {
+			type: 'place-observer',
+			povId: 'pov-1',
+			latitudeDeg: POLAR_CIRCLE_DEG
+		}).state;
+
+		let state = opened;
+		for (let press = 0; press < activity.guide.length; press += 1) {
+			state = applyEvent(state, { type: 'next-guide-step' }).state;
+		}
+
+		const observer = state.observers[0]!;
+		expect(observer.latitudeDeg).toBe(POLAR_CIRCLE_DEG);
+		expect(state.instant).toBe(Date.UTC(2025, 11, 21, 15, 3));
+		expect(state.timeSpan.fromInstant).toBeLessThan(activity.timeSpan.from);
+		expect(state.timeSpan.toInstant).toBeGreaterThan(activity.timeSpan.to);
+
+		const dayStart = Date.UTC(2025, 11, 21);
+		expect(daylightMinutes(observer, dayStart, dayStart + DAY)).toBeLessThanOrEqual(1);
 	});
 
 	it('derives the boundary from the obliquity, not from 66.5', () => {

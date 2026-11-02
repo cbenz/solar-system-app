@@ -15,6 +15,7 @@ import {
 	sunAzimuthDeg,
 	sunElevationDeg
 } from './observers';
+import { currentActivity } from './camera';
 import { tiltDegFromSettings } from './seasons';
 import { MAX_SHADOW_LENGTH_FACTOR, shadowGeometry } from './shadow';
 import type { BodyId, SceneObserver, SessionState } from './types';
@@ -35,6 +36,7 @@ export const OBSERVER_CONTRIBUTORS: readonly ObserverContributor[] = [
 		// The activity's tilt reaches the same geometry the terminator uses. With
 		// no `tilt` setting this is the model's obliquity, so nothing changes.
 		const tiltDeg = tiltDegFromSettings(state.settings);
+		const gnomon = currentActivity(state)?.gnomon === true;
 
 		return state.observers.map((observer) => ({
 			observer,
@@ -51,6 +53,7 @@ export const OBSERVER_CONTRIBUTORS: readonly ObserverContributor[] = [
 			moon: null,
 			// Filled by the eclipse pass in `scene.ts` (ticket 14).
 			eclipse: { kind: 'none', darkening: 0 },
+			gnomon,
 			// The gnomon (ticket 12). Only the Earth has a ground in the model; a
 			// body with no ground casts no shadow, which the null azimuth says.
 			shadow:

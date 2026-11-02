@@ -58,6 +58,9 @@ export default defineActivity({
 	title: 'activity.shadows.title',
 	// The Sun is implied; the activity needs the Earth and nothing else.
 	subsystem: ['earth'],
+	// The stick is this activity's instrument, and only its: every other
+	// activity's POV shows a clean horizon.
+	gnomon: true,
 	povs: [
 		{
 			id: 'pov-1',

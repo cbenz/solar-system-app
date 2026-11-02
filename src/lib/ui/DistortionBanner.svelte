@@ -1,6 +1,6 @@
 <script lang="ts">
 	/**
-	 * The settings banner: which distortion is active, the two scale switches
+	 * The settings banner: which distortion is active, the two distortion switches
 	 * (ADR-0003) and the visibility limit (ticket 16).
 	 *
 	 * Dumb renderer. The session decides which sentence to show
@@ -33,7 +33,7 @@
 	]);
 </script>
 
-<div class="scale-banner">
+<div class="distortion-banner">
 	{#if notice.length > 0}
 		<ul class="notice" aria-live="polite">
 			{#each notice as key (key)}
@@ -57,7 +57,7 @@
 </div>
 
 <style>
-	.scale-banner {
+	.distortion-banner {
 		position: fixed;
 		left: calc(1rem + env(safe-area-inset-left));
 		bottom: calc(7.5rem + env(safe-area-inset-bottom));
@@ -124,7 +124,7 @@
 
 	/* Landscape phone: the timeline is shorter, so the banner drops with it. */
 	@media (orientation: landscape) and (max-height: 30rem) {
-		.scale-banner {
+		.distortion-banner {
 			bottom: calc(5.5rem + env(safe-area-inset-bottom));
 			font-size: 0.85rem;
 		}

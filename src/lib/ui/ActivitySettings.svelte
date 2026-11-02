@@ -4,22 +4,24 @@
 	 * button for each boolean. Dumb renderer — the activity declares the settings
 	 * and their ranges, the session validates every value.
 	 *
-	 * `playbackSpeed` is omitted here because the timeline already owns that
-	 * control; showing it twice would be two ways to set one value. Everything
-	 * else an activity declares is surfaced, which is what puts the seasons tilt
-	 * and the exaggerated-orbit hypothesis within the child's reach.
+	 * Everything an activity declares is surfaced, playback speed included: the
+	 * timeline reads the setting but never offers a speed control of its own
+	 * (story 19). The seasons tilt and the exaggerated-orbit hypothesis are
+	 * surfaced the same way.
 	 */
 	import { translate } from '$lib/i18n/translate';
 	import { currentActivity, type SessionEvent, type SessionState } from '$lib/session';
+	import { visibleActivitySettings } from './activity-settings';
 
 	let { session, dispatch }: { session: SessionState; dispatch: (event: SessionEvent) => void } =
 		$props();
 
 	const activity = $derived(currentActivity(session));
-	const controls = $derived(
-		(activity?.settings ?? []).filter((setting) => setting.key !== 'playbackSpeed')
-	);
-	const visible = $derived(activity !== undefined && controls.length > 0 && session.phase !== 'mission');
+	const controls = $derived(visibleActivitySettings(activity, session.phase));
+	// The settings are for the activity's sandbox. The guide drives them through
+	// its own steps and the mission has its own panel; the rule lives in
+	// `activity-settings.ts` and is tested there.
+	const visible = $derived(activity !== undefined && controls.length > 0);
 
 	function valueOf(key: string): number | boolean {
 		const value = session.settings[key];
@@ -79,9 +81,13 @@
 {/if}
 
 <style>
+	/* One thumb: above the toolbar, above the POV strip. */
 	.activity-settings {
 		position: fixed;
-		top: calc(4.5rem + env(safe-area-inset-top));
+		bottom: calc(
+			var(--timeline-height, 8rem) + clamp(9rem, 28vh, 16rem) + 4.5rem +
+				env(safe-area-inset-bottom)
+		);
 		right: 0.75rem;
 		z-index: 10;
 		display: flex;
@@ -144,5 +150,14 @@
 	.toggle:focus-visible {
 		outline: 2px solid #7dd3fc;
 		outline-offset: 3px;
+	}
+
+	@media (orientation: landscape) {
+		/* Keep clear of the POV column on the right. */
+		.activity-settings {
+			bottom: calc(var(--timeline-height, 6rem) + 0.5rem + env(safe-area-inset-bottom));
+			right: calc(min(32vw, 22rem) + 0.75rem);
+			max-width: min(17rem, 40vw);
+		}
 	}
 </style>

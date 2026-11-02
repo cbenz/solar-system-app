@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { fixtureActivity } from '../../activities/__fixtures__/fixture.activity';
 import {
+	DEFAULT_CAMERA,
 	applyEvent,
 	buildScene,
+	cameraForPreset,
 	clampCamera,
 	createInitialState,
 	type SessionState
@@ -83,7 +85,18 @@ describe('leaving an activity', () => {
 		expect(left.timeSpan).toEqual(before.timeSpan);
 		expect(left.observers).toEqual(before.observers);
 		expect(left.settings).toEqual(before.settings);
-		expect(left.subsystem).toEqual(['sun', 'earth', 'moon']);
+		expect(left.subsystem).toEqual([
+			'sun',
+			'earth',
+			'moon',
+			'mercury',
+			'venus',
+			'mars',
+			'jupiter',
+			'saturn',
+			'uranus',
+			'neptune'
+		]);
 		expect(left.sandboxView).toBeNull();
 	});
 });
@@ -122,6 +135,31 @@ describe('the zoom clamp', () => {
 		expect(
 			applyEvent(state, { type: 'select-camera-preset', presetId: 'not-declared' }).state
 		).toBe(state);
+	});
+});
+
+describe('the reset camera control', () => {
+	it('returns the sandbox to its opening view without moving time', () => {
+		const moved = applyEvent(sandbox(), {
+			type: 'set-camera',
+			camera: { distance: 7.5, pitch: 0.4 }
+		}).state;
+		const reset = applyEvent(moved, { type: 'reset-camera' }).state;
+
+		expect(reset.camera).toEqual(DEFAULT_CAMERA);
+		expect(reset.instant).toBe(moved.instant);
+	});
+
+	it('returns an activity to its first declared camera preset', () => {
+		const state = open();
+		const moved = applyEvent(state, {
+			type: 'set-camera',
+			camera: { distance: 5, pitch: 0.2 }
+		}).state;
+		const reset = applyEvent(moved, { type: 'reset-camera' }).state;
+
+		expect(reset.camera).toEqual(cameraForPreset(fixtureActivity.cameraPresets[0]!));
+		expect(reset.instant).toBe(moved.instant);
 	});
 });
 

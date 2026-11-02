@@ -106,9 +106,13 @@
 {/if}
 
 <style>
+	/* One thumb: above the toolbar, which is itself above the POV strip. */
 	.mission-panel {
 		position: fixed;
-		top: calc(5rem + env(safe-area-inset-top));
+		bottom: calc(
+			var(--timeline-height, 8rem) + clamp(9rem, 28vh, 16rem) + 4.5rem +
+				env(safe-area-inset-bottom)
+		);
 		left: calc(1rem + env(safe-area-inset-left));
 		z-index: 10;
 		display: flex;
@@ -219,5 +223,12 @@
 	.abandon:focus-visible {
 		outline: 2px solid #7dd3fc;
 		outline-offset: 3px;
+	}
+
+	@media (orientation: landscape) {
+		.mission-panel {
+			bottom: calc(var(--timeline-height, 6rem) + 0.5rem + env(safe-area-inset-bottom));
+			max-width: min(20rem, 45vw);
+		}
 	}
 </style>

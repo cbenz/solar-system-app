@@ -135,8 +135,12 @@ describe('visibleBodies, limit on and off at the same instant', () => {
 		expect(sunElevationDeg(PARIS, night)).toBeLessThan(0);
 		expect(off.moon?.altitudeDeg).toBeGreaterThan(0);
 
-		expect(off.visibleBodies).toEqual(['moon']);
-		expect(on.visibleBodies).toEqual(['moon']);
+		// The map now carries the other planets too; the rule under test is that
+		// the Sun is below the horizon and the Moon is above it.
+		expect(off.visibleBodies).toContain('moon');
+		expect(on.visibleBodies).toContain('moon');
+		expect(off.visibleBodies).not.toContain('sun');
+		expect(on.visibleBodies).not.toContain('sun');
 		expect(off.visibilityLimit).toBe(false);
 		expect(on.visibilityLimit).toBe(true);
 		expect(on.moon?.illuminatedFraction).toBeCloseTo(moonPhase(night).illuminatedFraction, 12);

@@ -16,7 +16,7 @@
  */
 
 import { julianDay } from './time';
-import type { Instant, Vec3 } from './types';
+import type { Instant, PlanetId, Vec3 } from './types';
 
 export const AU_KM = 149_597_870.7;
 
@@ -138,6 +138,162 @@ export function sunGeocentricPositionAu(instant: Instant): Vec3 {
 			meanAnomalyDeg: normalizeDeg(meanLongitude - perihelionLongitude),
 			epochJd: jd,
 			periodDays: EARTH_SIDEREAL_YEAR_DAYS
+		},
+		jd
+	);
+}
+
+/**
+ * Mean Keplerian elements of the major planets at J2000.0, with their linear
+ * rates per Julian century. Source: E. M. Standish, *Keplerian Elements for
+ * Approximate Positions of the Major Planets* (JPL Solar System Dynamics),
+ * table 1, valid 1800–2050. The elements are referred to the J2000 ecliptic
+ * and equinox; the model uses the ecliptic of date, a difference far below the
+ * accuracy this map needs.
+ *
+ * `a` is in AU, angles in degrees, `rate*` are per Julian century.
+ */
+type PlanetElements = {
+	semiMajorAxisAu: number;
+	eccentricity: number;
+	inclinationDeg: number;
+	meanLongitudeDeg: number;
+	perihelionLongitudeDeg: number;
+	ascendingNodeDeg: number;
+	semiMajorAxisRate: number;
+	eccentricityRate: number;
+	inclinationRate: number;
+	meanLongitudeRate: number;
+	perihelionLongitudeRate: number;
+	ascendingNodeRate: number;
+};
+
+const PLANET_ELEMENTS: Record<PlanetId, PlanetElements> = {
+	mercury: {
+		semiMajorAxisAu: 0.38709927,
+		eccentricity: 0.20563593,
+		inclinationDeg: 7.00497902,
+		meanLongitudeDeg: 252.2503235,
+		perihelionLongitudeDeg: 77.45779628,
+		ascendingNodeDeg: 48.33076593,
+		semiMajorAxisRate: 0.00000037,
+		eccentricityRate: 0.00001906,
+		inclinationRate: -0.00594749,
+		meanLongitudeRate: 149472.67411175,
+		perihelionLongitudeRate: 0.16047689,
+		ascendingNodeRate: -0.12534081
+	},
+	venus: {
+		semiMajorAxisAu: 0.72333566,
+		eccentricity: 0.00677672,
+		inclinationDeg: 3.39467605,
+		meanLongitudeDeg: 181.9790995,
+		perihelionLongitudeDeg: 131.60246718,
+		ascendingNodeDeg: 76.67984255,
+		semiMajorAxisRate: 0.0000039,
+		eccentricityRate: -0.00004107,
+		inclinationRate: -0.0007889,
+		meanLongitudeRate: 58517.81538729,
+		perihelionLongitudeRate: 0.00268329,
+		ascendingNodeRate: -0.27769418
+	},
+	mars: {
+		semiMajorAxisAu: 1.52371034,
+		eccentricity: 0.0933941,
+		inclinationDeg: 1.84969142,
+		meanLongitudeDeg: -4.55343205,
+		perihelionLongitudeDeg: -23.94362959,
+		ascendingNodeDeg: 49.55953891,
+		semiMajorAxisRate: 0.00001847,
+		eccentricityRate: 0.00007882,
+		inclinationRate: -0.00813131,
+		meanLongitudeRate: 19140.30268499,
+		perihelionLongitudeRate: 0.44441088,
+		ascendingNodeRate: -0.29257343
+	},
+	jupiter: {
+		semiMajorAxisAu: 5.202887,
+		eccentricity: 0.04838624,
+		inclinationDeg: 1.30439695,
+		meanLongitudeDeg: 34.39644051,
+		perihelionLongitudeDeg: 14.72847983,
+		ascendingNodeDeg: 100.47390909,
+		semiMajorAxisRate: -0.00011607,
+		eccentricityRate: -0.00013253,
+		inclinationRate: -0.00183714,
+		meanLongitudeRate: 3034.74612775,
+		perihelionLongitudeRate: 0.21252668,
+		ascendingNodeRate: 0.20469106
+	},
+	saturn: {
+		semiMajorAxisAu: 9.53667594,
+		eccentricity: 0.05386179,
+		inclinationDeg: 2.48599187,
+		meanLongitudeDeg: 49.95424423,
+		perihelionLongitudeDeg: 92.59887831,
+		ascendingNodeDeg: 113.66242448,
+		semiMajorAxisRate: -0.0012506,
+		eccentricityRate: -0.00050991,
+		inclinationRate: 0.00193609,
+		meanLongitudeRate: 1222.49362201,
+		perihelionLongitudeRate: -0.41897216,
+		ascendingNodeRate: -0.28867794
+	},
+	uranus: {
+		semiMajorAxisAu: 19.18916464,
+		eccentricity: 0.04725744,
+		inclinationDeg: 0.77263783,
+		meanLongitudeDeg: 313.23810451,
+		perihelionLongitudeDeg: 170.9542763,
+		ascendingNodeDeg: 74.01692503,
+		semiMajorAxisRate: -0.00196176,
+		eccentricityRate: -0.00004397,
+		inclinationRate: -0.00242939,
+		meanLongitudeRate: 428.48202785,
+		perihelionLongitudeRate: 0.40805281,
+		ascendingNodeRate: 0.04240589
+	},
+	neptune: {
+		semiMajorAxisAu: 30.06992276,
+		eccentricity: 0.00859048,
+		inclinationDeg: 1.77004347,
+		meanLongitudeDeg: -55.12002969,
+		perihelionLongitudeDeg: 44.96476227,
+		ascendingNodeDeg: 131.78422574,
+		semiMajorAxisRate: 0.00026291,
+		eccentricityRate: 0.00005105,
+		inclinationRate: 0.00035372,
+		meanLongitudeRate: 218.45945325,
+		perihelionLongitudeRate: -0.32241464,
+		ascendingNodeRate: -0.00508664
+	}
+};
+
+/** A planet's heliocentric position, in AU in the ecliptic frame. */
+export function planetHeliocentricPositionAu(planet: PlanetId, instant: Instant): Vec3 {
+	const base = PLANET_ELEMENTS[planet];
+	const jd = julianDay(instant);
+	const centuries = (jd - 2451545.0) / 36525;
+
+	const semiMajorAxisAu = base.semiMajorAxisAu + base.semiMajorAxisRate * centuries;
+	const eccentricity = base.eccentricity + base.eccentricityRate * centuries;
+	const inclinationDeg = base.inclinationDeg + base.inclinationRate * centuries;
+	const meanLongitudeDeg = base.meanLongitudeDeg + base.meanLongitudeRate * centuries;
+	const perihelionLongitudeDeg =
+		base.perihelionLongitudeDeg + base.perihelionLongitudeRate * centuries;
+	const ascendingNodeDeg = base.ascendingNodeDeg + base.ascendingNodeRate * centuries;
+	const periodDays = 360 / (base.meanLongitudeRate / 36525);
+
+	return positionFromElements(
+		{
+			semiMajorAxisAu,
+			eccentricity,
+			inclinationDeg,
+			ascendingNodeDeg: normalizeDeg(ascendingNodeDeg),
+			argumentOfPerihelionDeg: normalizeDeg(perihelionLongitudeDeg - ascendingNodeDeg),
+			meanAnomalyDeg: normalizeDeg(meanLongitudeDeg - perihelionLongitudeDeg),
+			epochJd: jd,
+			periodDays
 		},
 		jd
 	);

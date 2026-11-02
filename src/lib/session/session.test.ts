@@ -32,10 +32,41 @@ describe('the session module', () => {
 
 		expect(result.state.instant).toBe(instant);
 		expect(result.state.mode).toBe('sandbox');
-		expect(result.scene.bodies.map((body) => body.id)).toEqual(['sun', 'earth', 'moon']);
+		expect(result.scene.bodies.map((body) => body.id)).toEqual([
+			'sun',
+			'earth',
+			'moon',
+			'mercury',
+			'venus',
+			'mars',
+			'jupiter',
+			'saturn',
+			'uranus',
+			'neptune'
+		]);
 		// Ticket 05 seeds one observer so a POV is visible before placement exists.
 		expect(result.scene.observers).toHaveLength(1);
 		expect(result.scene.observers[0]?.observer.id).toBe('pov-1');
+	});
+
+	it('draws the whole solar system in the sandbox map', () => {
+		const scene = buildScene(createInitialState());
+
+		expect(scene.bodies.map((body) => body.id)).toEqual([
+			'sun',
+			'earth',
+			'moon',
+			'mercury',
+			'venus',
+			'mars',
+			'jupiter',
+			'saturn',
+			'uranus',
+			'neptune'
+		]);
+		// A planet is a body in the map, not an activity: it carries no marker.
+		const planetIds = new Set(['mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune']);
+		expect(scene.markers.every((marker) => !planetIds.has(marker.bodyId))).toBe(true);
 	});
 
 	it('leaves the state untouched when the instant does not move', () => {

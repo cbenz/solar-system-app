@@ -42,7 +42,25 @@ export function applyGuideStep(state: SessionState, step: GuideStep): SessionSta
 	const activity = currentActivity(state);
 	let next = state;
 
-	const { camera, instant, tilt, povs } = step.apply;
+	const { camera, instant, tilt, povs, timeSpan } = step.apply;
+
+	// A step may declare the span its phenomenon needs. Apply it before the
+	// instant, so a December solstice step can live outside the activity's
+	// opening window without the instant being clamped away.
+	if (
+		timeSpan !== undefined &&
+		Number.isFinite(timeSpan.fromInstant) &&
+		Number.isFinite(timeSpan.toInstant) &&
+		timeSpan.toInstant > timeSpan.fromInstant
+	) {
+		next = {
+			...next,
+			timeSpan: {
+				fromInstant: timeSpan.fromInstant,
+				toInstant: timeSpan.toInstant
+			}
+		};
+	}
 
 	if (instant !== undefined) {
 		next = { ...next, instant: clampInstant(instant, next.timeSpan) };

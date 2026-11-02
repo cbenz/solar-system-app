@@ -1,13 +1,14 @@
 /**
- * Pure limits for the camera that watches the Earth.
+ * Pure limits for the camera that watches the solar system from the Earth.
  *
  * Distances are multiples of the Earth's radius. The lower bound keeps the
- * camera outside the globe; the upper bound keeps the Earth large enough to
- * read as a planet rather than a dot.
+ * camera outside the globe; the upper bound is far enough that a pinch out
+ * reaches the whole drawn system (the outermost planet is about 9 drawn Earth
+ * radii from the Earth with the default distance distortion).
  */
 
 export const MIN_CAMERA_DISTANCE = 1.6;
-export const MAX_CAMERA_DISTANCE = 8;
+export const MAX_CAMERA_DISTANCE = 30;
 
 /** Just short of the pole, so the Earth never flips over. */
 export const MAX_PITCH = (80 * Math.PI) / 180;

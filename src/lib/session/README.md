@@ -18,10 +18,10 @@ concern. Do not grow a god-reducer; add a file and append it to a list.
 
 | file | owns |
 |---|---|
-| `types.ts` | `Instant`, `Vec3`, `Observer`, `BodyId`, `SessionState`, `SceneSnapshot`, `SessionEvent`. Distances are **AU** (see the doc comment; `AU_KM` converts). |
-| `ephemeris.ts` | closed-form two-body Kepler: elements → position, the Earth and the Moon, the Sun's longitude and declination, GMST. |
-| `time.ts` | instant arithmetic, Julian Day, span ↔ track ratio, playback tick, span words. |
-| `observers.ts` | the observer's surface normal, Sun elevation, azimuth and daylight — one dot product, one rotation function. |
+| `types.ts` | `Instant`, `Vec3`, `Observer`, `BodyId` (the Sun, the Earth, the Moon and the seven other planets), `SessionState`, `SceneSnapshot`, `SessionEvent`. Distances are **AU** (see the doc comment; `AU_KM` converts). |
+| `ephemeris.ts` | closed-form two-body Kepler: elements → position, the Earth, the Moon and the other planets (JPL mean elements), the Sun's longitude and declination, GMST. |
+| `time.ts` | instant arithmetic, calendar year (derived arithmetically, never from a `Date`), Julian Day, span ↔ track ratio, playback tick, span words. |
+| `observers.ts` | the observer's surface normal, Sun elevation, azimuth and daylight — one dot product, one rotation function — and `bodyCenterAu` for every body. |
 | `observer-colour.ts` | the fixed three-colour observer palette and its first-free assignment. |
 | `pick.ts` | `pickLatitude`: the pure globe hit-test behind a tap — a ray, a sphere, and the latitude of the near crossing; a miss or the far side is `null`. |
 | `places.ts` | `placeName`: the geographic band of a latitude as a message key, with every threshold derived from the obliquity constant. |
@@ -31,24 +31,33 @@ concern. Do not grow a god-reducer; add a file and append it to a list.
 | `orbit-paths.ts` | which orbit rings a state draws, sampled relative to the Earth with the distance factor of the body they belong to. |
 | `moon.ts` | the Moon as the eye sees it: phase from the elongation, angular size, apparent magnitude. |
 | `visibility.ts` | the visibility limit's heuristic: `isAboveVisibilityLimit`, the limiting magnitude, the angular floor. |
-| `night-sky.ts` | `visibleBodiesFor` (narrowing by the limit), the Moon per POV, and the seeded decorative `starField`. |
+| `night-sky.ts` | `visibleBodiesFor` (narrowing by the limit), the Moon per POV, and the seeded decorative `decorativeStars`. |
 | `snap.ts` | the pure `snap(instant, snapPoints, ratio)` rule. |
 | `snap-points.ts` | which instants are worth snapping to, for a session state. |
-| `state.ts` | `createInitialState`, `reconcileTimeSpan` (span and instant normalisation). |
+| `settings.ts` | `SANDBOX_SETTINGS`: the settings that exist with no activity open (the visibility limit), so the sandbox refuses undeclared keys too. |
+| `state.ts` | `createInitialState`, `reconcileTimeSpan` (span and instant normalisation), and `DEFAULT_SUBSYSTEM` (the whole solar system in the sandbox). |
 | `resume.ts` | `resumeOffer`: which remembered activity may be offered as "resume", and when there is nothing to offer. |
 | `scene.ts` | composes `scene-bodies.ts`, `scene-observers.ts` and `scene-markers.ts` into a `SceneSnapshot`. |
+| `scene-bodies.ts` | one contributor per body: the Sun, the Earth, the Moon and the planets, each with its own positions and distortion factors. |
+| `scene-observers.ts` | the observer contributors: daylight, Sun azimuth, surface normal, visible bodies and the gnomon flag. |
 | `scene-markers.ts` | which activity markers are drawn on which bodies (sandbox only). |
 | `subsystem.ts` | `Subsystem` (a tuple starting with the Sun) and `withSun`, the normaliser. |
-| `camera.ts` | `clampCamera`: the session's answer to a camera request; free in the sandbox, clamped to the open activity's presets. |
-| `missions.ts` | the pure mission rules: `evaluateSuccess`/`graded` (far, close, right), `isSatisfied`, `matchPrediction`, `sceneMission`. |
-||||||| fe90b5c
-| `guide.ts` | the guide's behaviour: `applyGuideStep` (camera preset, instant, tilt, POV set), `nextGuideStep` (start on the first press, then advance one step), `guideFor`, `currentGuideStep`. Nothing watches a clock. |
+| `camera.ts` | `clampCamera`: the session's answer to a camera request; free in the sandbox, clamped to the open activity's presets. Also `DEFAULT_CAMERA` and `currentActivity`. |
+| `distortion.ts` | the two distortions (ADR-0003): distance compression, radius enlargement, `bodyDistortion`, `primaryOf`, `distortionNotice`. |
+| `missions.ts` | the pure mission rules: `evaluateSuccess`/`graded` (far, close, right), `isSatisfied`, `matchPrediction`, `freezeMissionScene`, `sceneMission`. |
+| `guide.ts` | the guide's behaviour: `applyGuideStep` (camera preset, instant, tilt, POV set, and the optional step `timeSpan`), `nextGuideStep` (start on the first press, then advance one step), `guideFor`, `currentGuideStep`. Nothing watches a clock. |
 | `povs.ts` | `observersFromPovs`: one colour assignment shared by an activity opening and a guide step changing the POV set. |
+| `circles.ts` | which latitude circles a state draws (the Equator always, an activity's own extras). |
+| `seasons.ts` | the seasons model with the tilt as a parameter: declination, day length, noon elevation, the daylight-minute proxy, perihelion/aphelion, the distance curve. |
+| `season-scene.ts` | the seasons scene snapshot: the drawn orbit (circular unless exaggerated), the parallel rays, the distance readout and the June/December daylight remainder. |
+| `sun-rays.ts` | the parallel sunlight bundle and the incidence-spacing rule. |
+| `sandbox-orbit.ts` | orbit derivation in the sandbox: stored state vectors, masses, ephemeris fallback, parameters, speeds. |
+| `sandbox-editing.ts` | the pencil's parameter edits and undo, and the drag's drops. |
+| `sandbox-escape.ts` | escape tracking, the body's future track, and the properties values that depend on escape. |
+| `sandbox-sun.ts` | the draggable Sun and the direction light comes from. |
+| `sandbox.ts` | the sandbox's re-export barrel; the four files above own the concerns. |
 | `reducer.ts` | the handler list and the one entry point. |
-| `handlers/*.ts` | one module per event family (`place-observer` owns observer identity and colour, `open-activity` owns the sandbox round trip, `set-setting` validates against the activity, `camera` owns presets and the clamp, `mission` owns the mission state machine). |
-||||||| fe90b5c
-| `handlers/*.ts` | one module per event family (`place-observer` owns observer identity and colour, `open-activity` owns the sandbox round trip, `set-setting` validates against the activity, `camera` owns presets and the clamp). |
-| `handlers/*.ts` | one module per event family (`place-observer` owns observer identity and colour, `open-activity` owns the sandbox round trip, `guide` owns `next-guide-step`, `set-setting` validates against the activity, `camera` owns presets and the clamp). |
+| `handlers/*.ts` | one module per event family (`place-observer` owns observer identity and colour, `open-activity` owns the sandbox round trip, `guide` owns `next-guide-step`, `set-setting` validates against the activity, `camera` owns presets, the clamp and `reset-camera`, `mission` owns the mission state machine, `sandbox-editing` owns the pencil and the drags, `scrub-to` owns time, `set-locale` owns the language, `toggle-distortion` owns the two distortion switches). |
 | `index.ts` | the public surface; components import only from here. |
 
 ## Activities
@@ -152,7 +161,7 @@ the activity's sandbox — never from the guide, never on top of another mission
 ## Memory
 
 The app remembers four fields across visits — the last activity, the locale and
-the two scale toggles — through the pure module in `src/lib/persist/storage.ts`.
+the two distortion toggles — through the pure module in `src/lib/persist/storage.ts`.
 No instant, no camera and no mission is stored, so "the last activity comes
 back" means: a return visit opens on the Earth as a first visit does, with a
 visible resume control naming that activity; taking it dispatches the ordinary

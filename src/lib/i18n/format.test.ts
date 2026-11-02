@@ -33,6 +33,11 @@ describe('numbers', () => {
 		expect(formatNumber(1234567.89, 'fr')).toBe('1\u202f234\u202f567,89');
 	});
 
+	it('keeps a fixed number of fraction digits when asked', () => {
+		expect(formatNumber(-30.8, 'en', { minimumFractionDigits: 1, maximumFractionDigits: 1 })).toBe('-30.8');
+		expect(formatNumber(-30.8, 'fr', { minimumFractionDigits: 1, maximumFractionDigits: 1 })).toBe('-30,8');
+	});
+
 	it('shows a number below a thousand without grouping', () => {
 		expect(formatNumber(42, 'en')).toBe('42');
 		expect(formatNumber(42.5, 'fr')).toBe('42,5');

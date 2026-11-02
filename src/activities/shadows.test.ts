@@ -187,3 +187,26 @@ function collectMessageKeys(value: unknown, keys = new Set<MessageKey>()): Messa
 	}
 	return [...keys];
 }
+
+
+describe('the gnomon belongs to the Shadows activity', () => {
+	it('is declared by the activity data and absent from every other POV', async () => {
+		expect(activity.gnomon).toBe(true);
+
+		const { buildScene, createInitialState, applyEvent } = await import('$lib/session');
+		const state = createInitialState({ activities: [activity], instant: activity.timeSpan.from });
+		const opened = applyEvent(state, { type: 'open-activity', activityId: activity.id }).state;
+
+		expect(buildScene(opened).observers.every((entry) => entry.gnomon)).toBe(true);
+
+		for (const id of ['day-and-night', 'latitudes', 'seasons', 'eclipses']) {
+			const other = createInitialState({ instant: state.instant }).activities.find(
+				(candidate) => candidate.id === id
+			);
+			if (other === undefined) continue;
+			const otherState = createInitialState({ activities: [other], instant: state.instant });
+			const otherOpened = applyEvent(otherState, { type: 'open-activity', activityId: id }).state;
+			expect(buildScene(otherOpened).observers.every((entry) => !entry.gnomon), id).toBe(true);
+		}
+	});
+});

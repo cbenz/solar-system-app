@@ -7,7 +7,8 @@ import {
 	instantAtRatio,
 	ratioOfInstant,
 	sandboxSpan,
-	spanLabelKey
+	spanLabelKey,
+	utcYear
 } from './time';
 
 const SPAN = { fromInstant: Date.parse('2025-01-01T00:00:00Z'), toInstant: Date.parse('2026-01-01T00:00:00Z') };
@@ -119,5 +120,16 @@ describe('the span in words', () => {
 
 		expect(new Date(span.fromInstant).toISOString()).toBe('2025-01-01T00:00:00.000Z');
 		expect(new Date(span.toInstant).toISOString()).toBe('2026-01-01T00:00:00.000Z');
+	});
+});
+
+
+describe('the calendar year', () => {
+	it('is derived from the instant, including across a year boundary', () => {
+		expect(utcYear(Date.UTC(2025, 0, 1))).toBe(2025);
+		expect(utcYear(Date.UTC(2025, 11, 31, 23, 59, 59))).toBe(2025);
+		expect(utcYear(Date.UTC(2026, 0, 1))).toBe(2026);
+		expect(utcYear(Date.UTC(2024, 1, 29))).toBe(2024);
+		expect(utcYear(Date.UTC(2000, 2, 1))).toBe(2000);
 	});
 });

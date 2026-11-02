@@ -44,6 +44,14 @@
 
 		<button
 			type="button"
+			class="recenter"
+			onclick={() => dispatch({ type: 'reset-camera' })}
+		>
+			{translate(session.locale, 'camera.reset')}
+		</button>
+
+		<button
+			type="button"
 			class="leave"
 			onclick={() => dispatch({ type: 'leave-activity' })}
 		>
@@ -53,9 +61,14 @@
 {/if}
 
 <style>
+	/* One thumb: the toolbar sits above the POV strip in portrait, and above
+	   the timeline in landscape where the POVs move to the side column. */
 	.activity-toolbar {
 		position: fixed;
-		top: calc(0.75rem + env(safe-area-inset-top));
+		bottom: calc(
+			var(--timeline-height, 8rem) + clamp(9rem, 28vh, 16rem) + 0.5rem +
+				env(safe-area-inset-bottom)
+		);
 		left: 50%;
 		transform: translateX(-50%);
 		z-index: 10;
@@ -80,6 +93,7 @@
 
 	.preset,
 	.mission,
+	.recenter,
 	.leave {
 		/* One thumb, big enough for a finger. */
 		min-height: 44px;
@@ -106,11 +120,30 @@
 		border-color: rgb(125 211 252 / 0.7);
 	}
 
+	.recenter {
+		border-color: rgb(255 255 255 / 0.35);
+	}
+
 	.preset:focus-visible,
 	.mission:focus-visible,
+	.recenter:focus-visible,
 	.leave:focus-visible {
 		outline: 2px solid #7dd3fc;
 		outline-offset: 3px;
+	}
+
+	@media (orientation: landscape) {
+		/* The POVs are a right-hand column, so the toolbar stays in the space
+		   view's share rather than covering them. */
+		.activity-toolbar {
+			bottom: calc(var(--timeline-height, 6rem) + 0.5rem + env(safe-area-inset-bottom));
+			left: 0;
+			right: min(32vw, 22rem);
+			transform: none;
+			justify-content: center;
+			max-width: none;
+			margin-inline: 0.75rem;
+		}
 	}
 
 	@media (max-width: 34rem) {
