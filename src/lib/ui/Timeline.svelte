@@ -206,7 +206,10 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
-		padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
+		/* The left gutter holds the sidebar control (44 px + margins), so the
+		   scrubber always starts where a finger can reach it, not under a button. */
+		padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom))
+			calc(0.5rem + 3.5rem + env(safe-area-inset-left));
 		background: linear-gradient(to top, rgb(0 0 0 / 0.72), rgb(0 0 0 / 0));
 		color: #fff;
 		font-size: 1rem;
