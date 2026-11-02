@@ -3,7 +3,7 @@
  * else.
  *
  * **What is stored.** Exactly four fields of session state — the last activity,
- * the active locale, and the two scale toggles — plus a format version. No
+ * the active locale, and the two distortion toggles — plus a format version. No
  * instant, no camera, no observers, no mission, and no identifier of any kind:
  * a household shares one device and there is no account, no server and no
  * analytics (spec, "Persistence"). `fromSession` takes only those four, so a

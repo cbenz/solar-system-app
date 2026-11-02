@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { bodyCenterAu } from './observers';
 import {
-	NIGHT_SKY_STAR_COUNT,
+	DECORATIVE_STAR_COUNT,
 	buildScene,
 	createInitialState,
 	moonAngularDiameterDeg,
@@ -9,7 +9,7 @@ import {
 	moonPhase,
 	pointAltitudeAzimuthDeg,
 	shortestAngleDeg,
-	starField,
+	decorativeStars,
 	type Observer,
 	type SessionState
 } from './index';
@@ -32,26 +32,26 @@ function entryAt(instant: number) {
 
 describe('the decorative star field', () => {
 	it('returns exactly the same stars for the same seed', () => {
-		expect(starField(0x5c1e57a2)).toEqual(starField(0x5c1e57a2));
+		expect(decorativeStars(0x5c1e57a2)).toEqual(decorativeStars(0x5c1e57a2));
 	});
 
 	it('does not shimmer between two identical scene builds', () => {
 		const state = createInitialState();
-		const first = starField(0x5c1e57a2);
+		const first = decorativeStars(0x5c1e57a2);
 		buildScene(state);
-		const second = starField(0x5c1e57a2);
+		const second = decorativeStars(0x5c1e57a2);
 
 		expect(second).toEqual(first);
 	});
 
 	it('differs for a different seed, so the seed is really the input', () => {
-		expect(starField(1)).not.toEqual(starField(2));
+		expect(decorativeStars(1)).not.toEqual(decorativeStars(2));
 	});
 
 	it('places every star above the horizon, on the whole circle', () => {
-		const stars = starField(0x5c1e57a2);
+		const stars = decorativeStars(0x5c1e57a2);
 
-		expect(stars).toHaveLength(NIGHT_SKY_STAR_COUNT);
+		expect(stars).toHaveLength(DECORATIVE_STAR_COUNT);
 		for (const star of stars) {
 			expect(star.altitudeDeg).toBeGreaterThanOrEqual(0);
 			expect(star.altitudeDeg).toBeLessThan(90);

@@ -6,6 +6,7 @@ import {
 	clampCameraDistance,
 	clampPitch
 } from './view';
+import { DRAWN_EARTH_RADIUS_AU, compressedDistanceAu } from '$lib/session/distortion';
 
 describe('camera distance', () => {
 	it('leaves a distance inside the allowed range alone', () => {
@@ -21,6 +22,13 @@ describe('camera distance', () => {
 
 	it('stops the child from losing the Earth in the distance', () => {
 		expect(clampCameraDistance(1000)).toBe(MAX_CAMERA_DISTANCE);
+	});
+
+	it('pinches out far enough to find the whole drawn solar system', () => {
+		// Neptune at 30 AU is drawn about 9 Earth radii from the Earth by the
+		// distance compression; the camera bound leaves room around it.
+		const drawnNeptune = compressedDistanceAu(30) / DRAWN_EARTH_RADIUS_AU;
+		expect(MAX_CAMERA_DISTANCE).toBeGreaterThan(drawnNeptune * 2);
 	});
 });
 

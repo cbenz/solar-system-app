@@ -35,15 +35,6 @@ export type SunRayBundle = {
 	spacingAu: number;
 };
 
-export type SunRayOptions = {
-	/** How many rays; an odd count puts one on the Earth–Sun axis. */
-	count?: number;
-	/** Half-width of the bundle across the Earth, in AU. */
-	halfWidthAu?: number;
-	/** How far the segment extends before and after the Earth, in AU. */
-	lengthAu?: number;
-};
-
 /** A unit vector perpendicular to `direction`, chosen deterministically. */
 function perpendicularTo(direction: Vec3): Vec3 {
 	// Pick the axis least aligned with the direction, so the cross product is
@@ -65,10 +56,12 @@ function perpendicularTo(direction: Vec3): Vec3 {
  * their origins are evenly spaced on a line perpendicular to it. That is what
  * "parallel sunlight" means, and the renderer draws the segments straight.
  */
-export function parallelSunRays(instant: Instant, options: SunRayOptions = {}): SunRayBundle {
-	const count = Math.max(2, Math.trunc(options.count ?? 7));
-	const halfWidthAu = options.halfWidthAu ?? 1.5 * EARTH_RADIUS_AU;
-	const lengthAu = options.lengthAu ?? 4 * EARTH_RADIUS_AU;
+export function parallelSunRays(instant: Instant): SunRayBundle {
+	// Seven rays: an odd count puts one on the Earth–Sun axis, and the bundle
+	// spans two and a half Earth radii, enough to cross the globe visibly.
+	const count = 7;
+	const halfWidthAu = 1.5 * EARTH_RADIUS_AU;
+	const lengthAu = 4 * EARTH_RADIUS_AU;
 
 	const earth = bodyCenterAu('earth', instant);
 	const direction = sunlightDirection(instant);
