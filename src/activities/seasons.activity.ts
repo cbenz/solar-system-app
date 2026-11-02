@@ -56,8 +56,8 @@ export default defineActivity({
 	title: 'activity.seasons.title',
 	subsystem: ['earth'],
 	povs: [
-		{ id: 'paris', bodyId: 'earth', latitudeDeg: PARIS_DEG },
-		{ id: 'sydney', bodyId: 'earth', latitudeDeg: SYDNEY_DEG }
+		{ id: 'paris', bodyId: 'earth', latitudeDeg: PARIS_DEG, label: SEASONS_POV_LABELS.paris },
+		{ id: 'sydney', bodyId: 'earth', latitudeDeg: SYDNEY_DEG, label: SEASONS_POV_LABELS.sydney }
 	],
 	timeSpan: { from: FROM, to: TO },
 	cameraPresets: [

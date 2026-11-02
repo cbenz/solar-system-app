@@ -26,6 +26,7 @@
  * mission brief carries a scene-derived pictogram, and the answer is the scene.
  */
 
+import { POLAR_CIRCLE_DEG } from '$lib/session/places';
 import {
 	isDaylight,
 	maxSunElevationDeg,
@@ -55,8 +56,17 @@ const MIDNIGHT = Date.UTC(2025, 5, 21, 0, 1, 41);
 const NEXT_NOON = Date.UTC(2025, 5, 21, 12, 1, 54);
 const NEXT_SUNSET = Date.UTC(2025, 5, 21, 20, 0, 59);
 
+/** The two solstices the last two guide steps walk between (USNO instants). */
+const JUNE_SOLSTICE = Date.UTC(2025, 5, 21, 2, 42);
+const DECEMBER_SOLSTICE = Date.UTC(2025, 11, 21, 15, 3);
+
 /** The observed place. The child may move it along its meridian at any time. */
 const LATITUDE_DEG = 48.8566;
+
+/** The observer the polar steps move to the circle, derived from the obliquity. */
+const POLAR_POVS = [
+	{ id: 'pov-1', bodyId: 'earth' as const, latitudeDeg: POLAR_CIRCLE_DEG }
+];
 
 /** How close to the meridian counts as "now" in the prediction, in degrees. */
 const NOW_BAND_DEG = 0.5;
@@ -229,6 +239,31 @@ export default defineActivity({
 		{
 			narration: 'activity.day-and-night.guide.backToDark',
 			apply: { camera: 'close', instant: NEXT_SUNSET },
+			waitForChild: true
+		},
+		{
+			narration: 'activity.day-and-night.guide.polarDay',
+			apply: {
+				camera: 'side',
+				instant: JUNE_SOLSTICE,
+				povs: POLAR_POVS
+			},
+			waitForChild: true
+		},
+		{
+			// Six months later, at the same place: widen the timeline so the child
+			// can walk there, then show the night with no day. The span belongs to
+			// this step's own activity data (ADR-0001), not to the shell.
+			narration: 'activity.day-and-night.guide.polarNight',
+			apply: {
+				camera: 'side',
+				instant: DECEMBER_SOLSTICE,
+				timeSpan: {
+					fromInstant: JUNE_SOLSTICE - 20 * DAY,
+					toInstant: DECEMBER_SOLSTICE + 20 * DAY
+				},
+				povs: POLAR_POVS
+			},
 			waitForChild: false
 		}
 	],

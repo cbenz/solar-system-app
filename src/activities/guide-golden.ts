@@ -60,7 +60,6 @@ export function runGuideGolden(activity: Activity): GuideGoldenResult {
 	expect(state.guideStep, `${activity.id}: opens with no guide step`).toBeNull();
 
 	const steps: GuideGoldenStep[] = [];
-	const span = { fromInstant: activity.timeSpan.from, toInstant: activity.timeSpan.to };
 
 	activity.guide.forEach((step, index) => {
 		// The child presses next once per step, waiting steps included. Nothing
@@ -85,8 +84,10 @@ export function runGuideGolden(activity: Activity): GuideGoldenResult {
 		}
 
 		if (step.apply.instant !== undefined) {
+			// A step may widen the timeline it needs; the instant is checked against
+			// the span the state actually has after the step.
 			expect(state.instant, `${activity.id} step ${index}: instant`).toBe(
-				clampInstant(step.apply.instant, span)
+				clampInstant(step.apply.instant, state.timeSpan)
 			);
 		}
 

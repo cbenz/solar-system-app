@@ -7,7 +7,7 @@ export type Instant = number;
 
 const dateFormatters = new Map<Locale, Intl.DateTimeFormat>();
 const timeFormatters = new Map<Locale, Intl.DateTimeFormat>();
-const numberFormatters = new Map<Locale, Intl.NumberFormat>();
+const numberFormatters = new Map<string, Intl.NumberFormat>();
 
 function dateFormatter(locale: Locale): Intl.DateTimeFormat {
 	let formatter = dateFormatters.get(locale);
@@ -31,11 +31,15 @@ function timeFormatter(locale: Locale): Intl.DateTimeFormat {
 	return formatter;
 }
 
-function numberFormatter(locale: Locale): Intl.NumberFormat {
-	let formatter = numberFormatters.get(locale);
+function numberFormatter(
+	locale: Locale,
+	fractionDigits?: { minimumFractionDigits?: number; maximumFractionDigits?: number }
+): Intl.NumberFormat {
+	const key = `${locale}:${fractionDigits?.minimumFractionDigits ?? ''}:${fractionDigits?.maximumFractionDigits ?? ''}`;
+	let formatter = numberFormatters.get(key);
 	if (!formatter) {
-		formatter = new Intl.NumberFormat(locale);
-		numberFormatters.set(locale, formatter);
+		formatter = new Intl.NumberFormat(locale, fractionDigits);
+		numberFormatters.set(key, formatter);
 	}
 	return formatter;
 }
@@ -50,7 +54,14 @@ export function formatTime(instant: Instant, locale: Locale): string {
 	return timeFormatter(locale).format(instant);
 }
 
-/** A number with the locale's grouping and decimal separators. */
-export function formatNumber(value: number, locale: Locale): string {
-	return numberFormatter(locale).format(value);
+/**
+ * A number with the locale's grouping and decimal separators. The optional
+ * fraction digits are the caller's presentation choice, never a locale's.
+ */
+export function formatNumber(
+	value: number,
+	locale: Locale,
+	fractionDigits?: { minimumFractionDigits?: number; maximumFractionDigits?: number }
+): string {
+	return numberFormatter(locale, fractionDigits).format(value);
 }

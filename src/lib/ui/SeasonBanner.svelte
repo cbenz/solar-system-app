@@ -4,6 +4,7 @@
 	 * one sentence that keeps the exaggerated shape honest. Dumb renderer — the
 	 * distance and the flag come from the session's `season` snapshot.
 	 */
+	import { formatNumber } from '$lib/i18n/format';
 	import { translate } from '$lib/i18n/translate';
 	import type { Locale } from '$lib/i18n/locale';
 	import type { SeasonScene } from '$lib/session';
@@ -13,10 +14,10 @@
 	const millionKm = $derived(
 		season === null
 			? ''
-			: new Intl.NumberFormat(locale === 'fr' ? 'fr-FR' : 'en-GB', {
+			: formatNumber(season.earthSunDistanceKm / 1_000_000, locale, {
 					minimumFractionDigits: 1,
 					maximumFractionDigits: 1
-				}).format(season.earthSunDistanceKm / 1_000_000)
+				})
 	);
 </script>
 
@@ -25,6 +26,17 @@
 		<p class="distance">
 			{translate(locale, 'activity.seasons.scene.distance', { distance: millionKm })}
 		</p>
+		{#each season.daylight as entry (entry.povId)}
+			<p class="daylight">
+				{translate(locale, 'activity.seasons.scene.daylight', {
+					place: translate(locale, entry.label),
+					minutes: formatNumber(entry.differenceMinutes, locale, {
+						minimumFractionDigits: 1,
+						maximumFractionDigits: 1
+					})
+				})}
+			</p>
+		{/each}
 		{#if season.exaggeratedOrbit}
 			<p class="hypothesis">{translate(locale, 'activity.seasons.scene.notRealOrbit')}</p>
 		{/if}
@@ -46,9 +58,14 @@
 		pointer-events: none;
 	}
 
-	.distance {
+	.distance,
+	.daylight {
 		margin: 0;
 		font-variant-numeric: tabular-nums;
+	}
+
+	.daylight {
+		opacity: 0.85;
 	}
 
 	.hypothesis {

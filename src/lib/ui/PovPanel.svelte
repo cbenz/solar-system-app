@@ -9,7 +9,7 @@
 	 * shades the globe. Never from a clock, never from a second lighting test.
 	 *
 	 * The night sky is two things (ticket 16): a decorative star field and the
-	 * real Moon. The stars come from the session's seeded `starField`, so they
+	 * real Moon. The stars come from the session's seeded `decorativeStars`, so they
 	 * never shimmer between renders, and they claim nothing — no constellation,
 	 * no named star. The Moon is drawn where the snapshot puts it, at the phase
 	 * and size the model gives, its lit limb turned toward its `litLimbAngleDeg`.
@@ -22,8 +22,8 @@
 		gnomonScreen,
 		placeName,
 		skyToScreen,
-		starField,
-		NIGHT_SKY_SEED,
+		decorativeStars,
+		DECORATIVE_STAR_SEED,
 		type SceneObserver
 	} from '$lib/session';
 
@@ -34,7 +34,7 @@
 	let height = $state(0);
 
 	// Generated once, from a fixed seed: the same sky on every render.
-	const STARS = starField(NIGHT_SKY_SEED);
+	const STARS = decorativeStars(DECORATIVE_STAR_SEED);
 
 	function draw(): void {
 		if (canvas === undefined || width <= 0 || height <= 0) return;
@@ -96,38 +96,43 @@
 		context.lineTo(width, horizon);
 		context.stroke();
 
-		// The gnomon: a stick standing on the ground and the shadow it casts. Both
-		// positions come from the session's pure geometry; this only strokes them.
-		const glyph = gnomonScreen(entry.shadow, viewport);
+		// The gnomon belongs to the Shadows activity only (story 43). Every other
+		// activity's POV shows a clean horizon: the flag is the activity's data,
+		// not a component switch.
+		if (entry.gnomon) {
+			// A stick standing on the ground and the shadow it casts. Both positions
+			// come from the session's pure geometry; this only strokes them.
+			const glyph = gnomonScreen(entry.shadow, viewport);
 
-		if (glyph.shadow !== null && daylight) {
-			const shadow = glyph.shadow;
-			context.beginPath();
-			context.moveTo(shadow.baseLeft.x, shadow.baseLeft.y);
-			context.lineTo(shadow.baseRight.x, shadow.baseRight.y);
-			context.lineTo(shadow.tipRight.x, shadow.tipRight.y);
-			context.lineTo(shadow.tipLeft.x, shadow.tipLeft.y);
-			context.closePath();
-			context.fillStyle = 'rgba(10, 14, 8, 0.55)';
-			context.fill();
+			if (glyph.shadow !== null && daylight) {
+				const shadow = glyph.shadow;
+				context.beginPath();
+				context.moveTo(shadow.baseLeft.x, shadow.baseLeft.y);
+				context.lineTo(shadow.baseRight.x, shadow.baseRight.y);
+				context.lineTo(shadow.tipRight.x, shadow.tipRight.y);
+				context.lineTo(shadow.tipLeft.x, shadow.tipLeft.y);
+				context.closePath();
+				context.fillStyle = 'rgba(10, 14, 8, 0.55)';
+				context.fill();
+			}
+
+			const stick = glyph.stick;
+			context.fillStyle = daylight ? '#8a6a3f' : '#3a3024';
+			context.fillRect(
+				stick.x - stick.halfWidth,
+				stick.topY,
+				stick.halfWidth * 2,
+				stick.baseY - stick.topY
+			);
+			// A lit edge, so the stick reads as a solid object rather than a line.
+			context.fillStyle = daylight ? '#d8b07a' : '#5b4a33';
+			context.fillRect(
+				stick.x - stick.halfWidth,
+				stick.topY,
+				Math.max(0.5, stick.halfWidth * 0.7),
+				stick.baseY - stick.topY
+			);
 		}
-
-		const stick = glyph.stick;
-		context.fillStyle = daylight ? '#8a6a3f' : '#3a3024';
-		context.fillRect(
-			stick.x - stick.halfWidth,
-			stick.topY,
-			stick.halfWidth * 2,
-			stick.baseY - stick.topY
-		);
-		// A lit edge, so the stick reads as a solid object rather than a line.
-		context.fillStyle = daylight ? '#d8b07a' : '#5b4a33';
-		context.fillRect(
-			stick.x - stick.halfWidth,
-			stick.topY,
-			Math.max(0.5, stick.halfWidth * 0.7),
-			stick.baseY - stick.topY
-		);
 
 		// The Sun is drawn while it is in `visibleBodies`, or — with the limit off
 		// — always, so the panel can show it just under the horizon after dark.
