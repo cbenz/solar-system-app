@@ -22,6 +22,8 @@ export const fr: Record<MessageKey, string> = {
 	'time.span.month': 'un mois',
 	'time.span.year': 'un an',
 
+	'camera.reset': 'Bonne vue',
+
 	'term.activity': 'Activité',
 	'term.camera-preset': 'Preset de caméra',
 	'term.guide': 'Guide',
@@ -38,8 +40,15 @@ export const fr: Record<MessageKey, string> = {
 	'term.visibility-limit': 'Limite de visibilité',
 
 	'body.sun': 'Soleil',
+	'body.mercury': 'Mercure',
+	'body.venus': 'Vénus',
 	'body.earth': 'Terre',
 	'body.moon': 'Lune',
+	'body.mars': 'Mars',
+	'body.jupiter': 'Jupiter',
+	'body.saturn': 'Saturne',
+	'body.uranus': 'Uranus',
+	'body.neptune': 'Neptune',
 
 	'sandbox.properties': 'Propriétés',
 	'sandbox.properties.open': 'Propriétés de : {body}',
@@ -90,6 +99,10 @@ export const fr: Record<MessageKey, string> = {
 	'activity.day-and-night.guide.nextNoon': 'Un tour complet plus tard, il est de nouveau midi.',
 	'activity.day-and-night.guide.backToDark':
 		'Et voilà l’ombre qui revient. La nuit n’est jamais loin derrière.',
+	'activity.day-and-night.guide.polarDay':
+		'Monte maintenant jusqu’au cercle polaire. En juin, le Soleil tourne sans se coucher : une journée entière sans nuit.',
+	'activity.day-and-night.guide.polarNight':
+		'Six mois plus tard, au même endroit, le Soleil ne se lève jamais. La frise contient maintenant les deux solstices : va et vient entre une journée sans nuit et une nuit sans jour.',
 
 	'mission.day-and-night.noon.label': 'Midi là où je suis',
 	'mission.day-and-night.noon.brief':
@@ -214,7 +227,7 @@ export const fr: Record<MessageKey, string> = {
 	'activity.seasons.mission.closest.brief':
 		'Trouve le jour où la Terre est la plus proche du Soleil.',
 	'activity.seasons.mission.closest.prediction':
-		'Quand la Terre est-elle la plus proche du Soleil ? Place la frise dans cette saison, puis dis-le à l’appli.',
+		'Avant de déplacer quoi que ce soit : quand crois-tu que la Terre est la plus proche du Soleil ? Valide cette idée.',
 	'activity.seasons.mission.closest.claim.summer':
 		"En été : la Terre est la plus proche du Soleil.",
 	'activity.seasons.mission.closest.claim.winter':
@@ -228,6 +241,8 @@ export const fr: Record<MessageKey, string> = {
 	'activity.seasons.mission.closest.right':
 		"C'est début janvier : la Terre est au plus près du Soleil en hiver boréal.",
 	'activity.seasons.scene.distance': 'Distance Terre–Soleil : {distance} millions de km',
+	'activity.seasons.scene.daylight':
+		'Journée de juin moins journée de décembre à {place} : {minutes} minutes de soleil.',
 	'activity.seasons.scene.notRealOrbit':
 		"Cette orbite est exagérée exprès. La vraie orbite est presque un cercle, et ce n'est pas elle qui fait les saisons.",
 
@@ -250,7 +265,7 @@ export const fr: Record<MessageKey, string> = {
 	'activity.eclipses.mission.lineUp.brief':
 		'Place la Lune pour qu’elle cache le Soleil au premier observateur.',
 	'activity.eclipses.mission.lineUp.prediction':
-		'Mets la Lune là où tu penses qu’elle doit être, puis valide ton idée.',
+		'Avant de déplacer la Lune : où crois-tu qu’elle doit être ? Valide cette idée.',
 	'activity.eclipses.mission.lineUp.claim.moonInFront':
 		'La Lune doit être entre la Terre et le Soleil.',
 	'activity.eclipses.mission.lineUp.claim.earthInFront':
@@ -265,6 +280,6 @@ export const fr: Record<MessageKey, string> = {
 
 	'pov.sunHeight': 'Hauteur du Soleil : {height}°',
 
-	'scale.distancesNotToScale': 'Les distances entre eux sont raccourcies pour que tu puisses tout voir.',
-	'scale.sizesNotToScale': "La Terre, la Lune et le Soleil sont dessinés plus grands qu'en vrai."
+	'distortion.distancesNotToScale': 'Les distances entre eux sont raccourcies pour que tu puisses tout voir.',
+	'distortion.sizesNotToScale': "La Terre, la Lune et le Soleil sont dessinés plus grands qu'en vrai."
 };

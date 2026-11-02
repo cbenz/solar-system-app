@@ -16,11 +16,24 @@ import type { BodyId, Instant, SessionState, TimeSpan } from './types';
 export const DEFAULT_PLAYBACK_SPEED = 1;
 
 /**
- * The sandbox shows the Sun, the Earth and the Moon. The Moon earns its place
- * here because tickets 05 and 16 need it; keeping it out would only mean
- * breaking the position of nothing.
+ * The sandbox shows the whole solar system: the Sun, the Earth and the Moon,
+ * then the planets the map is worth zooming out for. Only the Earth and the
+ * Moon carry activities; the planets are bodies the child can find and tap.
+ * The order matches `scene-bodies.ts`, so the snapshot lists them in the same
+ * order as the subsystem.
  */
-export const DEFAULT_SUBSYSTEM: readonly BodyId[] = ['sun', 'earth', 'moon'];
+export const DEFAULT_SUBSYSTEM: readonly BodyId[] = [
+	'sun',
+	'earth',
+	'moon',
+	'mercury',
+	'venus',
+	'mars',
+	'jupiter',
+	'saturn',
+	'uranus',
+	'neptune'
+];
 
 const DEFAULT_INSTANT: Instant = Date.UTC(2025, 2, 20, 12, 0, 0);
 

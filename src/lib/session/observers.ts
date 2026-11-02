@@ -19,6 +19,7 @@ import {
 	earthHeliocentricPositionAu,
 	greenwichSiderealTimeDeg,
 	moonHeliocentricPositionAu,
+	planetHeliocentricPositionAu,
 	length,
 	normalizeDeg,
 	obliquityDeg,
@@ -74,7 +75,7 @@ export function observerPositionAu(
 	};
 }
 
-/** Heliocentric centre of a body, in AU. Ticket 03 knows the Sun, Earth, Moon. */
+/** Heliocentric centre of a body, in AU. */
 export function bodyCenterAu(bodyId: BodyId, instant: Instant): Vec3 {
 	switch (bodyId) {
 		case 'sun':
@@ -83,6 +84,8 @@ export function bodyCenterAu(bodyId: BodyId, instant: Instant): Vec3 {
 			return earthHeliocentricPositionAu(instant);
 		case 'moon':
 			return moonHeliocentricPositionAu(instant);
+		default:
+			return planetHeliocentricPositionAu(bodyId, instant);
 	}
 }
 

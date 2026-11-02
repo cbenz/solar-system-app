@@ -4,6 +4,13 @@ import type { BodyId } from '$lib/session';
 
 export const BODY_LABEL_KEY: Record<BodyId, MessageKey> = {
 	sun: 'body.sun',
+	mercury: 'body.mercury',
+	venus: 'body.venus',
 	earth: 'body.earth',
-	moon: 'body.moon'
+	moon: 'body.moon',
+	mars: 'body.mars',
+	jupiter: 'body.jupiter',
+	saturn: 'body.saturn',
+	uranus: 'body.uranus',
+	neptune: 'body.neptune'
 };

@@ -17,7 +17,7 @@
 
 import type { Locale } from '$lib/i18n/locale';
 import type { MessageKey } from '$lib/i18n/messages';
-import type { Activity, MissionMotif } from '../../activities/types';
+import type { Activity, MissionMotif, MissionScene } from '../../activities/types';
 import type { SeasonScene } from './season-scene';
 import type { ShadowGeometry } from './shadow';
 
@@ -31,10 +31,35 @@ export type Instant = number;
 export type Vec3 = { x: number; y: number; z: number };
 
 /**
- * A body the session can draw. Later tickets extend this union: planets appear
- * in the map, the Moon in tickets 05 and 16.
+ * The planets besides the Earth that appear in the map. They carry no
+ * activities: they are bodies the child can zoom out to find and tap.
  */
-export type BodyId = 'sun' | 'earth' | 'moon';
+export type PlanetId =
+	| 'mercury'
+	| 'venus'
+	| 'mars'
+	| 'jupiter'
+	| 'saturn'
+	| 'uranus'
+	| 'neptune';
+
+/** Every planet, in orbital order. The Earth is its own member of `BodyId`. */
+export const PLANET_IDS: readonly PlanetId[] = [
+	'mercury',
+	'venus',
+	'mars',
+	'jupiter',
+	'saturn',
+	'uranus',
+	'neptune'
+];
+
+/**
+ * A body the session can draw: the Sun, the Moon, the Earth, and the planets
+ * that make the map worth zooming out for. Only the Earth and the Moon have
+ * activities.
+ */
+export type BodyId = 'sun' | 'earth' | 'moon' | PlanetId;
 
 /**
  * Someone standing on a body, whose view fills a POV.
@@ -94,6 +119,12 @@ export type RecordedPrediction = {
 export type MissionProgress = {
 	missionId: string;
 	phase: MissionPhase;
+	/**
+	 * The scene as it stood when the mission started. The prediction phase reads
+	 * this frozen copy, never live state, so stating a belief never requires
+	 * manipulating the model first (ADR-0004 rule 4).
+	 */
+	predictionScene: MissionScene;
 	prediction: RecordedPrediction | null;
 };
 
@@ -198,7 +229,7 @@ export type SessionState = {
 
 /**
  * A body in the scene. `position` is heliocentric and true; the two factors are
- * the scale the renderer applies (`scale.ts`). Distances are distorted by
+ * the distortion the renderer applies (`distortion.ts`). Distances are distorted by
  * default, so every renderer multiplies rather than deciding for itself.
  */
 export type SceneBody = {
@@ -260,6 +291,8 @@ export type SceneObserver = {
 	visibilityLimit: boolean;
 	/** The Moon for this POV, or null when it is not drawn (see `night-sky.ts`). */
 	moon: SceneMoon | null;
+	/** True only when the open activity declares the gnomon (Shadows). */
+	gnomon: boolean;
 	/** The gnomon's shadow for this POV: pure geometry, drawn on the ground plane. */
 	shadow: ShadowGeometry;
 	/** What this observer sees of the Sun (ticket 14), `none` outside an eclipse. */
@@ -317,7 +350,7 @@ export type SceneOrbitPath = {
 	kind: 'moon-orbit' | 'ecliptic' | 'earth-orbit';
 	/** Closed loop of samples **relative to the Earth**, in true AU. */
 	points: Vec3[];
-	/** Multiplies each sample's offset from the Earth (`scale.ts`, ADR-0003). */
+	/** Multiplies each sample's offset from the Earth (`distortion.ts`, ADR-0003). */
 	distanceFactor: number;
 };
 
@@ -348,6 +381,8 @@ export type SessionEvent =
 	| { type: 'switch-subsystem'; subsystem: BodyId[] }
 	| { type: 'set-setting'; key: string; value: number | boolean }
 	| { type: 'set-camera'; camera: CameraState }
+	/** Put the camera back on the good view without moving the instant. */
+	| { type: 'reset-camera' }
 	| { type: 'select-camera-preset'; presetId: string }
 	| { type: 'toggle-true-distance' }
 	| { type: 'toggle-true-size' }

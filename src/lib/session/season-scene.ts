@@ -9,18 +9,22 @@
  *
  * The model is pure and in the session's heliocentric frame (AU, ecliptic
  * plane). The renderer converts the points through the same drawn offset it
- * uses for the bodies (`scale.ts`), so the shape is never decided in WebGL.
+ * uses for the bodies (`distortion.ts`), so the shape is never decided in WebGL.
  */
 
 import { findSetting } from '../../activities/settings';
+import type { MessageKey } from '$lib/i18n/messages';
 import { currentActivity } from './camera';
 import { earthHeliocentricPositionAu } from './ephemeris';
+import { placeName } from './places';
 import {
+	daylightMinutesForTilt,
 	earthSunDistanceAu,
 	earthSunDistanceKm,
 	perihelionInstant,
 	tiltDegFromSettings
 } from './seasons';
+import { utcYear } from './time';
 import { parallelSunRays, type SunRayBundle } from './sun-rays';
 import type { Instant, SessionState, Vec3 } from './types';
 
@@ -37,11 +41,36 @@ export function drawnOrbitEccentricity(exaggerated: boolean): number {
 
 /** Earth's heliocentric direction at the year's perihelion, in radians. */
 function perihelionAngle(instant: Instant): number {
-	const year = new Date(instant).getUTCFullYear();
+	// `utcYear` derives the calendar year arithmetically: the instant is a plain
+	// number and never a `Date`.
+	const year = utcYear(instant);
 	const perihelion = perihelionInstant(Date.UTC(year, 0, 1), Date.UTC(year + 1, 0, 1));
 	const position = earthHeliocentricPositionAu(perihelion);
 	return Math.atan2(position.y, position.x);
 }
+
+/** The two solstices of an instant's year, near enough for the daylight readout. */
+function solsticeInstants(instant: Instant): { june: Instant; december: Instant } {
+	const year = utcYear(instant);
+	return {
+		june: Date.UTC(year, 5, 21, 2, 42),
+		december: Date.UTC(year, 11, 21, 15, 3)
+	};
+}
+
+/**
+ * The June/December daylight difference at one POV, in equivalent minutes at
+ * full intensity. At zero tilt the day length is the same everywhere, but the
+ * distance's `1/r²` remainder survives: this is the small number story 53 asks
+ * the child to keep seeing.
+ */
+export type SeasonDaylight = {
+	povId: string;
+	label: MessageKey;
+	juneMinutes: number;
+	decemberMinutes: number;
+	differenceMinutes: number;
+};
 
 /**
  * The closed drawn orbit, in heliocentric AU, in the ecliptic plane.
@@ -91,6 +120,8 @@ export type SeasonScene = {
 	rays: SunRayBundle;
 	earthSunDistanceAu: number;
 	earthSunDistanceKm: number;
+	/** The June/December daylight difference at each declared POV. */
+	daylight: readonly SeasonDaylight[];
 };
 
 /**
@@ -107,6 +138,18 @@ export function seasonSceneFor(state: SessionState): SeasonScene | null {
 	const tiltDeg = tiltDegFromSettings(state.settings);
 	const exaggeratedOrbit = state.settings.exaggeratedOrbit === true;
 	const drawnEccentricity = drawnOrbitEccentricity(exaggeratedOrbit);
+	const { june, december } = solsticeInstants(state.instant);
+	const daylight = activity.povs.map((pov) => {
+		const juneMinutes = daylightMinutesForTilt(pov.latitudeDeg, june, tiltDeg);
+		const decemberMinutes = daylightMinutesForTilt(pov.latitudeDeg, december, tiltDeg);
+		return {
+			povId: pov.id,
+			label: pov.label ?? placeName(pov.latitudeDeg),
+			juneMinutes,
+			decemberMinutes,
+			differenceMinutes: juneMinutes - decemberMinutes
+		};
+	});
 
 	return {
 		tiltDeg,
@@ -115,6 +158,7 @@ export function seasonSceneFor(state: SessionState): SeasonScene | null {
 		orbit: drawnOrbitPoints(state.instant, drawnEccentricity),
 		rays: parallelSunRays(state.instant),
 		earthSunDistanceAu: earthSunDistanceAu(state.instant),
-		earthSunDistanceKm: earthSunDistanceKm(state.instant)
+		earthSunDistanceKm: earthSunDistanceKm(state.instant),
+		daylight
 	};
 }

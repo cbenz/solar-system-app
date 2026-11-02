@@ -1,5 +1,5 @@
 /**
- * The two scale distortions (ADR-0003), as numbers the renderer multiplies by.
+ * The two distortions (ADR-0003), as numbers the renderer multiplies by.
  *
  * Distances and radii are distorted by default so the scene stays readable, and
  * the two distortions are independent: a child can ask for real distances while
@@ -69,8 +69,15 @@ import type { BodyId, SessionState } from './types';
 /** The radius of each body, in AU, from the published values in km. */
 const TRUE_RADIUS_KM: Record<BodyId, number> = {
 	sun: 696_000,
+	mercury: 2_439.7,
+	venus: 6_051.8,
 	earth: 6_371,
-	moon: 1_737.4
+	moon: 1_737.4,
+	mars: 3_389.5,
+	jupiter: 69_911,
+	saturn: 58_232,
+	uranus: 25_362,
+	neptune: 24_622
 };
 
 /** The Earth's drawn radius in the readable default: the scene's unit. */
@@ -98,16 +105,34 @@ export const MOON_ORBIT_DRAWN_AU = MOON_ORBIT_DRAWN_RADII * DRAWN_EARTH_RADIUS_A
 const ENLARGEMENT = DRAWN_EARTH_RADIUS_AU / (TRUE_RADIUS_KM.earth / AU_KM);
 
 /** The body each body's distance is measured from. The Sun has none. */
-const PRIMARY: Record<BodyId, BodyId | null> = { sun: null, earth: 'sun', moon: 'earth' };
+const PRIMARY: Record<BodyId, BodyId | null> = {
+	sun: null,
+	mercury: 'sun',
+	venus: 'sun',
+	earth: 'sun',
+	moon: 'earth',
+	mars: 'sun',
+	jupiter: 'sun',
+	saturn: 'sun',
+	uranus: 'sun',
+	neptune: 'sun'
+};
 
 /** Each body's mean distance from its primary, in AU (the compression's input). */
 const MEAN_PRIMARY_DISTANCE_AU: Record<BodyId, number> = {
 	sun: 0,
+	mercury: 0.38709927,
+	venus: 0.72333566,
 	earth: 1.000001018,
-	moon: 384_400 / AU_KM
+	moon: 384_400 / AU_KM,
+	mars: 1.52371034,
+	jupiter: 5.202887,
+	saturn: 9.53667594,
+	uranus: 19.18916464,
+	neptune: 30.06992276
 };
 
-export type ScaleFactors = {
+export type DistortionFactors = {
 	/** Multiplies the body's offset from its primary. */
 	distanceFactor: number;
 	/** Multiplies the body's true radius. */
@@ -145,11 +170,11 @@ export function enlargedRadiusAu(trueRadiusAuValue: number): number {
  * depend on nothing else, so turning one switch on cannot change the other
  * distortion.
  */
-export function bodyScale(
+export function bodyDistortion(
 	trueDistance: boolean,
 	trueSize: boolean,
 	body: BodyId
-): ScaleFactors {
+): DistortionFactors {
 	const meanDistance = MEAN_PRIMARY_DISTANCE_AU[body];
 	// The Moon's orbit is drawn at a readable radius, not at its true one: at its
 	// true distance it would be inside the enlarged Earth (see the header).
@@ -171,7 +196,7 @@ export function bodyScale(
  */
 export function distortionNotice(state: Pick<SessionState, 'trueDistance' | 'trueSize'>): MessageKey[] {
 	const notice: MessageKey[] = [];
-	if (!state.trueDistance) notice.push('scale.distancesNotToScale');
-	if (!state.trueSize) notice.push('scale.sizesNotToScale');
+	if (!state.trueDistance) notice.push('distortion.distancesNotToScale');
+	if (!state.trueSize) notice.push('distortion.sizesNotToScale');
 	return notice;
 }

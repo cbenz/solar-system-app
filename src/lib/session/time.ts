@@ -29,6 +29,27 @@ export function instantFromJulianDay(jd: number): Instant {
 	return (jd - 2_440_587.5) * MS_PER_DAY;
 }
 
+/**
+ * The UTC calendar year of an instant, derived arithmetically. `Instant` is a
+ * plain number and never a `Date` (see `types.ts`); this is the civil-from-days
+ * algorithm, so no `Date` object is constructed.
+ */
+export function utcYear(instant: Instant): number {
+	const days = Math.floor(instant / MS_PER_DAY) + 719468;
+	const era = Math.floor(days / 146097);
+	const dayOfEra = days - era * 146097;
+	const yearOfEra = Math.floor(
+		(dayOfEra - Math.floor(dayOfEra / 1460) + Math.floor(dayOfEra / 36524) - Math.floor(dayOfEra / 146096)) /
+			365
+	);
+	const year = yearOfEra + era * 400;
+	const dayOfYear =
+		dayOfEra - (365 * yearOfEra + Math.floor(yearOfEra / 4) - Math.floor(yearOfEra / 100));
+	const monthPrime = Math.floor((5 * dayOfYear + 2) / 153);
+	const month = monthPrime + (monthPrime < 10 ? 3 : -9);
+	return year + (month <= 2 ? 1 : 0);
+}
+
 export function startOfDay(instant: Instant): Instant {
 	return Math.floor(instant / MS_PER_DAY) * MS_PER_DAY;
 }

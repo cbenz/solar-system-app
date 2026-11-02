@@ -13,7 +13,13 @@
  * home.
  */
 
-import { currentMission, isSatisfied, matchPrediction, missionOf } from '../missions';
+import {
+	currentMission,
+	freezeMissionScene,
+	isSatisfied,
+	matchPrediction,
+	missionOf
+} from '../missions';
 import type { SessionEvent, SessionState } from '../types';
 
 export function handleMission(state: SessionState, event: SessionEvent): SessionState | null {
@@ -30,7 +36,14 @@ export function handleMission(state: SessionState, event: SessionEvent): Session
 			return {
 				...state,
 				phase: 'mission',
-				mission: { missionId: mission.id, phase: 'predict', prediction: null }
+				mission: {
+					missionId: mission.id,
+					phase: 'predict',
+					// Freeze the starting view now: the prediction is evaluated
+					// against it, never against what the child does afterwards.
+					predictionScene: freezeMissionScene(state),
+					prediction: null
+				}
 			};
 		}
 
@@ -41,7 +54,7 @@ export function handleMission(state: SessionState, event: SessionEvent): Session
 			const mission = currentMission(state);
 			if (mission === undefined) return state;
 
-			const proposition = matchPrediction(mission.prediction, state);
+			const proposition = matchPrediction(mission.prediction, progress.predictionScene);
 			// The child has not produced a state the mission can recognise. The
 			// scene shows nothing yet; the prediction is not recorded.
 			if (proposition === undefined) return state;
@@ -56,8 +69,8 @@ export function handleMission(state: SessionState, event: SessionEvent): Session
 						missionId: mission.id,
 						propositionId: proposition.id,
 						statement: proposition.statement,
-						instant: state.instant,
-						settings: { ...state.settings }
+						instant: progress.predictionScene.instant,
+						settings: { ...progress.predictionScene.settings }
 					}
 				}
 			};

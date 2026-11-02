@@ -21,6 +21,7 @@ export {
 	isSatisfied,
 	matchPrediction,
 	missionOf,
+	freezeMissionScene,
 	promptFor,
 	sceneMission
 } from './missions';
@@ -37,8 +38,8 @@ export {
 	drawnOrbitPoints,
 	seasonSceneFor
 } from './season-scene';
-export type { SeasonScene } from './season-scene';
-export type { SunRay, SunRayBundle, SunRayOptions } from './sun-rays';
+export type { SeasonDaylight, SeasonScene } from './season-scene';
+export type { SunRay, SunRayBundle } from './sun-rays';
 export {
 	EXAGGERATED_ORBIT_SETTING_KEY,
 	annualDistanceCurve,
@@ -131,12 +132,12 @@ export type { BodyContributor } from './scene-bodies';
 export { OBSERVER_CONTRIBUTORS } from './scene-observers';
 export type { ObserverContributor } from './scene-observers';
 export {
-	NIGHT_SKY_SEED,
-	NIGHT_SKY_STAR_COUNT,
+	DECORATIVE_STAR_SEED,
+	DECORATIVE_STAR_COUNT,
 	angularDiameterDegOf,
 	apparentMagnitudeOf,
 	moonFor,
-	starField,
+	decorativeStars,
 	visibilityLimitEnabled,
 	visibleBodiesFor,
 	withNightSky
@@ -217,6 +218,7 @@ export {
 	earthHeliocentricPositionAu,
 	earthSunDistanceAu,
 	moonAscendingNodeDeg,
+	planetHeliocentricPositionAu,
 	moonGeocentricPositionAu,
 	moonHeliocentricPositionAu,
 	solarDeclinationDeg,
@@ -232,7 +234,7 @@ export {
 	sunHourAngleDeg
 } from './observers';
 export {
-	bodyScale,
+	bodyDistortion,
 	compressedDistanceAu,
 	DISTANCE_FLOOR_AU,
 	distortionNotice,
@@ -243,10 +245,12 @@ export {
 	primaryOf,
 	SUN_RADIUS_CAP_AU,
 	trueRadiusAu
-} from './scale';
-export type { ScaleFactors } from './scale';
+} from './distortion';
+export type { DistortionFactors } from './distortion';
+export { PLANET_IDS } from './types';
 export type {
 	BodyId,
+	PlanetId,
 	CameraState,
 	Instant,
 	MissionPhase,
