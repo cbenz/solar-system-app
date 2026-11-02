@@ -1,0 +1,213 @@
+<script lang="ts">
+	/**
+	 * The one page. It owns the session state, wires the three renderers to it,
+	 * and dispatches events. No behaviour lives here: every rule is in
+	 * `$lib/session`, every string is in `$lib/i18n`.
+	 */
+	import { onMount } from 'svelte';
+	import LanguageSwitch from '$lib/i18n/LanguageSwitch.svelte';
+	import { resolveLocale } from '$lib/i18n/detect';
+	import {
+		createBrowserStorage,
+		fromSession,
+		readStored,
+		writeState,
+		type StorageAdapter
+	} from '$lib/persist/storage';
+	import { resumeOffer } from '$lib/session';
+	import { translate } from '$lib/i18n/translate';
+	import type { PlacementIntent } from '$lib/scene/gesture';
+	import { createScene, type ObserverLabelPosition, type SceneHandle } from '$lib/scene/scene';
+	import {
+		applyEvent,
+		bodyDragEnabled,
+		bodyPositionAu,
+		buildScene,
+		clampCamera,
+		createInitialState,
+		MOON_ORBIT_SETTING_KEY,
+		moonOffsetForPosition,
+		placementTargetId,
+		type BodyId,
+		type SceneSnapshot,
+		type SessionEvent,
+		type SessionState,
+		type Vec3
+	} from '$lib/session';
+	import ObserverLabels from '$lib/ui/ObserverLabels.svelte';
+	import ActivityToolbar from '$lib/ui/ActivityToolbar.svelte';
+	import ActivitySettings from '$lib/ui/ActivitySettings.svelte';
+	import MissionPanel from '$lib/ui/MissionPanel.svelte';
+	import BodyPropertiesCard from '$lib/ui/BodyPropertiesCard.svelte';
+	import SandboxToolbar from '$lib/ui/SandboxToolbar.svelte';
+	import GuidePanel from '$lib/ui/GuidePanel.svelte';
+	import PovDock from '$lib/ui/PovDock.svelte';
+	import DistortionBanner from '$lib/ui/DistortionBanner.svelte';
+	import SeasonBanner from '$lib/ui/SeasonBanner.svelte';
+	import Timeline from '$lib/ui/Timeline.svelte';
+	import ActivitySidebar from '$lib/ui/ActivitySidebar.svelte';
+	import ResumeBanner from '$lib/ui/ResumeBanner.svelte';
+
+	// The device language decides the first screen (ADR-0006); switching is an event.
+	const deviceLanguage = typeof navigator === 'undefined' ? undefined : navigator.language;
+
+	let host: HTMLDivElement;
+	let scene: SceneHandle | null = null;
+	let session = $state<SessionState>(createInitialState({ locale: resolveLocale(deviceLanguage) }));
+	let labelPositions = $state<Record<string, ObserverLabelPosition>>({});
+	const snapshot = $derived<SceneSnapshot>(buildScene(session));
+
+	/**
+	 * Memory (ticket 17): four fields, localStorage only. The store is created on
+	 * mount so the prerendered HTML never touches the browser; `remembered` is
+	 * the last activity the app may offer to resume.
+	 */
+	let store: StorageAdapter | null = null;
+	/** Reactive on purpose: the writing effect must re-run once the store exists. */
+	let storeReady = $state(false);
+	let rememberedActivityId = $state<string | null>(null);
+	let engaged = $state(false);
+
+	const offer = $derived(engaged ? null : resumeOffer(session, rememberedActivityId));
+
+	function isKnownActivity(id: string): boolean {
+		return session.activities.some((activity) => activity.id === id);
+	}
+
+	/** Only the four remembered fields are read here, so scrubbing writes nothing. */
+	$effect(() => {
+		if (!storeReady || store === null) return;
+		writeState(
+			store,
+			fromSession({
+				activityId: session.activityId,
+				locale: session.locale,
+				trueDistance: session.trueDistance,
+				trueSize: session.trueSize
+			})
+		);
+	});
+
+	/** Once the child has opened anything, the resume offer has been made. */
+	$effect(() => {
+		if (session.mode === 'activity') engaged = true;
+	});
+
+	function dispatch(event: SessionEvent): void {
+		const result = applyEvent(session, event);
+		session = result.state;
+		scene?.update(result.scene);
+	}
+
+	/**
+	 * A placement gesture names the POV it lands on: a drag keeps the dot the
+	 * child grabbed, a tap goes to the selected POV (the first one, for now).
+	 */
+	function placeObserver(intent: PlacementIntent): void {
+		const povId = intent.kind === 'drag' ? intent.observerId : placementTargetId(session);
+		dispatch({ type: 'place-observer', povId, latitudeDeg: intent.latitudeDeg });
+	}
+
+	/**
+	 * A dragged body arrives relative to the Earth, the drawn frame's origin. The
+	 * Sun's event wants an absolute sandbox position, so the Earth is added back;
+	 * a dropped moon already speaks relative to its primary.
+	 *
+	 * In an activity that lets the child place the Moon, a Moon drag is not a drop:
+	 * it is a position along the Moon's orbit, which the session turns into the
+	 * placement setting. Nothing snaps it to an alignment.
+	 */
+	function dropBody(bodyId: BodyId, position: Vec3): void {
+		if (bodyId === 'sun') {
+			const earth = bodyPositionAu(session, 'earth', session.instant);
+			dispatch({
+				type: 'move-body',
+				bodyId: 'sun',
+				position: { x: earth.x + position.x, y: earth.y + position.y, z: earth.z + position.z }
+			});
+			return;
+		}
+
+		if (bodyId === 'moon' && session.mode === 'activity') {
+			const offset = moonOffsetForPosition(session.instant, position);
+			if (offset !== null) {
+				dispatch({ type: 'set-setting', key: MOON_ORBIT_SETTING_KEY, value: offset });
+			}
+			return;
+		}
+
+		// A drag-and-release is a drop with no velocity: the session's documented
+		// convention (circular at the drop radius) supplies the orbit.
+		dispatch({ type: 'drop-body', bodyId, position, velocity: null });
+	}
+
+	onMount(() => {
+		// A return visit takes the stored locale and distortion toggles; a first visit
+		// keeps the device language and the defaults (ticket 02's rule).
+		store = createBrowserStorage();
+		const stored = readStored(store, isKnownActivity);
+		storeReady = true;
+		if (stored !== null) {
+			session = createInitialState({
+				locale: stored.locale,
+				trueDistance: stored.trueDistance,
+				trueSize: stored.trueSize
+			});
+			rememberedActivityId = stored.activityId;
+		}
+
+		const created = createScene(host, {
+			// The renderer asks; the session decides where the camera may go.
+			clampCamera: (requested) => clampCamera(session, requested),
+			onCameraChange: (camera) => dispatch({ type: 'set-camera', camera }),
+			onOpenActivity: (activityId) => dispatch({ type: 'open-activity', activityId }),
+			onPlacement: placeObserver,
+			onSelectBody: (bodyId) => dispatch({ type: 'select-body', bodyId }),
+			canDragBodies: () => bodyDragEnabled(session),
+			onBodyDrop: dropBody,
+			onLabelsChange: (labels) => {
+				labelPositions = Object.fromEntries(labels.map((label) => [label.id, label]));
+			}
+		});
+		created.update(buildScene(session));
+		scene = created;
+		return () => {
+			created.destroy();
+			scene = null;
+		};
+	});
+</script>
+
+<svelte:head>
+	<title>{translate(session.locale, 'app.title')}</title>
+</svelte:head>
+
+<div class="scene" bind:this={host}></div>
+<ObserverLabels entries={snapshot.observers} positions={labelPositions} locale={session.locale} />
+<ActivityToolbar session={session} {dispatch} />
+<ActivitySettings session={session} {dispatch} />
+<MissionPanel mission={snapshot.mission} locale={session.locale} {dispatch} />
+<SandboxToolbar session={session} {dispatch} />
+<BodyPropertiesCard session={session} {dispatch} />
+<GuidePanel session={session} {dispatch} />
+<PovDock observers={snapshot.observers} locale={session.locale} />
+<DistortionBanner session={session} {dispatch} />
+<SeasonBanner season={snapshot.season} locale={session.locale} />
+<Timeline session={session} {dispatch} />
+<ActivitySidebar session={session} {dispatch} />
+{#if offer !== null}
+	<ResumeBanner
+		session={session}
+		activity={offer}
+		onTake={() => dispatch({ type: 'open-activity', activityId: offer.id })}
+	/>
+{/if}
+<LanguageSwitch locale={session.locale} onSelect={(locale) => dispatch({ type: 'set-locale', locale })} />
+
+<style>
+	.scene {
+		position: fixed;
+		inset: 0;
+		touch-action: none;
+	}
+</style>

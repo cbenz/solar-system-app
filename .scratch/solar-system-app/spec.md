@@ -1,6 +1,6 @@
 # Solar system learning app — spec
 
-Status: ready-for-agent
+Status: resolved
 
 ## Problem Statement
 
@@ -300,3 +300,34 @@ The design session that produced this spec also produced `GLOSSARY.md` (canonica
 Still owed by the design phase, and deliberately not decided here: the chrome layout on a phone in both orientations, the shape of the activity markers on the bodies, the exact contents of each activity's camera presets, the wording of every mission, and the interaction for placing a body with a finger in the sandbox.
 
 The five activities are ordered for construction, not for use: day and night, latitudes, shadows, seasons, eclipses. No order is imposed on the child.
+
+## Code review
+
+Findings from the Standards and Spec reviews, and what was done. Nothing was declined; two items
+carry a judgement note.
+
+| finding | outcome |
+|---|---|
+| A1 stories 2–3: zoom out, find the planets, tap a body | **Fixed.** `BodyId` now carries Mercury, Venus, Mars, Jupiter, Saturn, Uranus and Neptune; the ephemeris gives each closed-form JPL mean elements (cited in `ephemeris.ts`); the sandbox subsystem and the scene draw them, and the camera bound reaches the whole drawn system. Tapping a planet or the Sun opens its properties card (the name). No planet has activities. |
+| A2 story 6: one button back to a good view | **Fixed.** `reset-camera` returns the sandbox to `DEFAULT_CAMERA` and an activity to its first declared preset, without touching the instant. The button is in the sandbox and activity toolbars, 44 px, catalogue-labelled. |
+| A3 story 19: playback speed in activity settings | **Fixed.** The settings panel no longer filters `playbackSpeed`; the timeline still only reads it. The visibility rule is pure and tested in `ui/activity-settings.test.ts`. |
+| A4 story 36 / ticket 10: polar night reachable | **Fixed.** `GuideStep.apply` has an optional `timeSpan`; the day-and-night guide now walks to the Polar Circle, the June solstice and then a widened span holding both solstices, landing on the December solstice. An end-to-end guide test asserts the night with no day. |
+| A5 story 53: remainder at zero tilt | **Fixed.** `SeasonScene` carries the June/December equivalent-minute difference at each declared POV; `SeasonBanner` shows it in the active locale through `formatNumber`, so zero tilt still shows a small non-zero number. |
+| A6 story 90: one thumb | **Fixed.** `ActivityToolbar`, `MissionPanel`, `GuidePanel` and `ActivitySettings` are bottom-anchored in portrait and landscape, clear of the timeline and the POV strip. Layout recorded in ticket 17's Notes. |
+| A7 story 43: gnomon only in Shadows | **Fixed.** `Activity.gnomon` is activity data; `SceneObserver.gnomon` carries it and `PovPanel` draws the stick and shadow only when it is true. Shadows declares it; every other activity shows a clean horizon. |
+| A8 ADR-0004 rule 4: predict before manipulate | **Fixed.** `start-mission` freezes a copy of the child-manipulable scene; `record-prediction` matches propositions against that copy and records its instant and settings. Seasons and Eclipses prompts no longer ask the child to scrub or place first. Judgement note: because a mission is never a form, the claim stated is the one the frozen starting view expresses — the child still cannot pick the other claim, but no prior manipulation is required and the recorded claim is immutable. |
+| B1 `new Date(instant)` in `season-scene.ts` | **Fixed.** `utcYear` derives the year arithmetically; no `Date` object is constructed from an `Instant`. |
+| B2 `session/README.md` conflict markers and stale map | **Fixed.** Markers and duplicate handler rows removed; the table now lists every module, including the new sandbox split, seasons and distortion files, and the renamed terms. |
+| B3 avoid *scale* | **Fixed.** `distortion.ts`, `handlers/toggle-distortion.ts`, `DistortionBanner.svelte`, `bodyDistortion`, `DistortionFactors`; imports, tests, styles and comments follow. Activity settings that mean something else were not renamed. |
+| B4 avoid *starfield* | **Fixed.** `decorativeStars`, `DECORATIVE_STAR_SEED`, `DECORATIVE_STAR_COUNT`. |
+| B5 ambient light from nowhere | **Fixed.** The `AmbientLight` is removed; the Sun's directional light is the only light. The night half is dark. |
+| C1 private `Intl.NumberFormat` in `SeasonBanner` | **Fixed.** `formatNumber` gained optional fraction digits and is used for both the distance and the daylight readout. |
+| C2 speculative `SunRayOptions` | **Fixed.** The options type and parameter are gone; `parallelSunRays(instant)` uses its fixed readable bundle. |
+| C3 session depending on `$lib/scene/random` | **Fixed.** `mulberry32` moved to `src/lib/random.ts`; the renderer and the session both import that neutral module. |
+| C4 `sandbox.ts` divergent change | **Fixed.** Split into `sandbox-orbit.ts`, `sandbox-editing.ts`, `sandbox-escape.ts` and `sandbox-sun.ts`; `sandbox.ts` is a re-export barrel, so the public surface and every existing test are unchanged. |
+
+## Resolution
+
+Every ticket under `issues/` is resolved and every checkbox is ticked. The whole spec is implemented
+on the integration branch `feat/solar-system-app` (PR #1). What the code review found, and what was
+done about each finding, is in the `## Code review` section above.

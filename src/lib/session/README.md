@@ -1,0 +1,195 @@
+# The session module
+
+One pure, headless module owns everything observable. It takes the current state
+and an event, and returns the next state plus the derived scene:
+
+```ts
+applyEvent(state: SessionState, event: SessionEvent): { state, scene: SceneSnapshot }
+```
+
+Nothing in `src/lib/session/` imports Three.js, touches the DOM or imports
+Svelte. It runs in the node test environment. The components and the renderer
+are dumb: they dispatch events and draw the snapshot.
+
+The modules are split so later tickets extend it **additively**, one file per
+concern. Do not grow a god-reducer; add a file and append it to a list.
+
+## The files
+
+| file | owns |
+|---|---|
+| `types.ts` | `Instant`, `Vec3`, `Observer`, `BodyId` (the Sun, the Earth, the Moon and the seven other planets), `SessionState`, `SceneSnapshot`, `SessionEvent`. Distances are **AU** (see the doc comment; `AU_KM` converts). |
+| `ephemeris.ts` | closed-form two-body Kepler: elements → position, the Earth, the Moon and the other planets (JPL mean elements), the Sun's longitude and declination, GMST. |
+| `time.ts` | instant arithmetic, calendar year (derived arithmetically, never from a `Date`), Julian Day, span ↔ track ratio, playback tick, span words. |
+| `observers.ts` | the observer's surface normal, Sun elevation, azimuth and daylight — one dot product, one rotation function — and `bodyCenterAu` for every body. |
+| `observer-colour.ts` | the fixed three-colour observer palette and its first-free assignment. |
+| `pick.ts` | `pickLatitude`: the pure globe hit-test behind a tap — a ray, a sphere, and the latitude of the near crossing; a miss or the far side is `null`. |
+| `places.ts` | `placeName`: the geographic band of a latitude as a message key, with every threshold derived from the obliquity constant. |
+| `sky.ts` | `skyToScreen`: the POV panel's only geometry, a pure (altitude, azimuth) → pixel map. |
+| `shadow.ts` | the gnomon: shadow length and azimuth away from the Sun, the day's shortest, and the POV ground-plane glyph. |
+| `eclipse.ts` | the two shadow cones and the angular predicate for both eclipse directions, the Moon placed on its inclined orbit (a setting, offset zero = the ephemeris Moon), and the drawn orbit rings. |
+| `orbit-paths.ts` | which orbit rings a state draws, sampled relative to the Earth with the distance factor of the body they belong to. |
+| `moon.ts` | the Moon as the eye sees it: phase from the elongation, angular size, apparent magnitude. |
+| `visibility.ts` | the visibility limit's heuristic: `isAboveVisibilityLimit`, the limiting magnitude, the angular floor. |
+| `night-sky.ts` | `visibleBodiesFor` (narrowing by the limit), the Moon per POV, and the seeded decorative `decorativeStars`. |
+| `snap.ts` | the pure `snap(instant, snapPoints, ratio)` rule. |
+| `snap-points.ts` | which instants are worth snapping to, for a session state. |
+| `settings.ts` | `SANDBOX_SETTINGS`: the settings that exist with no activity open (the visibility limit), so the sandbox refuses undeclared keys too. |
+| `state.ts` | `createInitialState`, `reconcileTimeSpan` (span and instant normalisation), and `DEFAULT_SUBSYSTEM` (the whole solar system in the sandbox). |
+| `resume.ts` | `resumeOffer`: which remembered activity may be offered as "resume", and when there is nothing to offer. |
+| `scene.ts` | composes `scene-bodies.ts`, `scene-observers.ts` and `scene-markers.ts` into a `SceneSnapshot`. |
+| `scene-bodies.ts` | one contributor per body: the Sun, the Earth, the Moon and the planets, each with its own positions and distortion factors. |
+| `scene-observers.ts` | the observer contributors: daylight, Sun azimuth, surface normal, visible bodies and the gnomon flag. |
+| `scene-markers.ts` | which activity markers are drawn on which bodies (sandbox only). |
+| `subsystem.ts` | `Subsystem` (a tuple starting with the Sun) and `withSun`, the normaliser. |
+| `camera.ts` | `clampCamera`: the session's answer to a camera request; free in the sandbox, clamped to the open activity's presets. Also `DEFAULT_CAMERA` and `currentActivity`. |
+| `distortion.ts` | the two distortions (ADR-0003): distance compression, radius enlargement, `bodyDistortion`, `primaryOf`, `distortionNotice`. |
+| `missions.ts` | the pure mission rules: `evaluateSuccess`/`graded` (far, close, right), `isSatisfied`, `matchPrediction`, `freezeMissionScene`, `sceneMission`. |
+| `guide.ts` | the guide's behaviour: `applyGuideStep` (camera preset, instant, tilt, POV set, and the optional step `timeSpan`), `nextGuideStep` (start on the first press, then advance one step), `guideFor`, `currentGuideStep`. Nothing watches a clock. |
+| `povs.ts` | `observersFromPovs`: one colour assignment shared by an activity opening and a guide step changing the POV set. |
+| `circles.ts` | which latitude circles a state draws (the Equator always, an activity's own extras). |
+| `seasons.ts` | the seasons model with the tilt as a parameter: declination, day length, noon elevation, the daylight-minute proxy, perihelion/aphelion, the distance curve. |
+| `season-scene.ts` | the seasons scene snapshot: the drawn orbit (circular unless exaggerated), the parallel rays, the distance readout and the June/December daylight remainder. |
+| `sun-rays.ts` | the parallel sunlight bundle and the incidence-spacing rule. |
+| `sandbox-orbit.ts` | orbit derivation in the sandbox: stored state vectors, masses, ephemeris fallback, parameters, speeds. |
+| `sandbox-editing.ts` | the pencil's parameter edits and undo, and the drag's drops. |
+| `sandbox-escape.ts` | escape tracking, the body's future track, and the properties values that depend on escape. |
+| `sandbox-sun.ts` | the draggable Sun and the direction light comes from. |
+| `sandbox.ts` | the sandbox's re-export barrel; the four files above own the concerns. |
+| `reducer.ts` | the handler list and the one entry point. |
+| `handlers/*.ts` | one module per event family (`place-observer` owns observer identity and colour, `open-activity` owns the sandbox round trip, `guide` owns `next-guide-step`, `set-setting` validates against the activity, `camera` owns presets, the clamp and `reset-camera`, `mission` owns the mission state machine, `sandbox-editing` owns the pencil and the drags, `scrub-to` owns time, `set-locale` owns the language, `toggle-distortion` owns the two distortion switches). |
+| `index.ts` | the public surface; components import only from here. |
+
+## Activities
+
+The catalogue lives in `src/activities/` and is discovered by Vite's
+`import.meta.glob`. `createInitialState` stores it on `state.activities`, so the
+session resolves `activityId` without importing the registry and a test can
+inject a fixture. See `src/activities/README.md` for the declaration recipe.
+
+## Adding an event family
+
+1. Create `handlers/<family>.ts`:
+
+   ```ts
+   export function handleSetSetting(
+     state: SessionState,
+     event: SessionEvent
+   ): SessionState | null {
+     if (event.type !== 'set-setting') return null; // not mine
+     return { ...state, settings: { ...state.settings, [event.key]: event.value } };
+   }
+   ```
+
+   Return `null` for every event that is not yours — that is how the reducer
+   finds the owner. Return `state` unchanged when the event is a no-op, so
+   identity checks and deep-equality tests stay meaningful.
+
+2. Append it to `SESSION_HANDLERS` in `reducer.ts`. That one-line append is the
+   only edit a new family makes outside its own file.
+
+3. If the new state field has meaning beyond the handler (a snapshot field, a
+   derived span), add a contributor instead of editing the composer.
+
+Until a family has a handler, its event **throws**
+`UnhandledSessionEventError`, naming the event type. That is deliberate: a
+silently ignored event would look like a session bug in five different tickets.
+
+## Adding a body to the snapshot
+
+Add a contributor to `BODY_CONTRIBUTORS` in `scene-bodies.ts` (return `null`
+when the body is outside the subsystem) and add the id to `BodyId` in
+`types.ts`. Positions must never read the subsystem — that is what makes
+"shrinking the subsystem never moves a body that stays present" true.
+
+## Observer colour and longitude
+
+The session assigns a new observer the first unused colour from
+`observer-colour.ts`; a component never picks one, and moving an observer along
+its meridian keeps its colour. Longitude is not a control: `place-observer`
+stores only latitude, and `observedNormal` reads `longitudeDeg ?? 0`, so the
+same `earthRotationAngle` sweep carries the day. An activity may declare a
+longitude for a staged observation without making it interactive.
+
+## Adding a derived observer quantity
+
+Append a contributor to `OBSERVER_CONTRIBUTORS` in `scene-observers.ts`. Keep
+`sunElevationDeg` and `daylight` derived from `observers.ts`'s single dot
+product: the terminator, the POV panel and the night sky must never disagree.
+
+The **visibility limit** is not a contributor: it narrows a field another
+contributor already filled, so `scene.ts` maps every entry through
+`withNightSky` (in `night-sky.ts`) after the contributors have run. That pass
+owns `visibleBodies`, `visibilityLimit` and `moon`. It also has the `moon.ts`
+and `visibility.ts` modules behind it; a component draws, it does not decide.
+
+## Missions
+
+A mission is never a form (ADR-0004). It runs `predict → manipulate → observe →
+explain`, forward only, and the answer to every phase is the scene.
+
+- **Predict.** The child states a claim by producing a scene state, not by
+  picking a row: `record-prediction` matches the state against the mission's
+  propositions and records the first whose `holds` is true, together with a
+  **copy** of the instant and the settings. Nothing overwrites that copy — not
+  moving time, not the reveal. A scene that matches no proposition records
+  nothing and stays in `predict`.
+- **Manipulate.** The child moves time, the camera or a setting.
+  `evaluateSuccess` grades the current scene on every event: `right` inside the
+  mission's `tolerance`, `close` inside `closeTolerance` (the "almost" band the
+  child can correct from), `far` beyond. `reveal-mission` is **refused** unless
+  the outcome is `right`, so a wrong attempt can never strand the mission in
+  `observe`.
+- **Observe.** The model has answered; the panel says what to look at. The
+  prediction is still there and still says what the child said.
+- **A brief's picture.** A mission may declare `motif`, a pure function of the
+  scene returning `sun-high`, `sun-on-horizon` or `sun-below`. `sceneMission`
+  evaluates it for the snapshot; the panel draws it and decides nothing.
+- **Explain.** `explain-mission`, then `finish-mission` back to the activity's
+  sandbox with the instant and camera unchanged.
+
+`abandon-mission` works from every phase and loses nothing: it clears the
+mission and returns to the activity's sandbox with the camera, the instant, the
+observers and the settings exactly where the child left them. The saved
+pre-activity `sandboxView` is untouched, so `leave-activity` still goes all the
+way home.
+
+`state.phase` is `'mission'` while a mission runs and `state.mission` carries the
+mission phase; the two are set and cleared together. A mission starts only from
+the activity's sandbox — never from the guide, never on top of another mission.
+
+## Memory
+
+The app remembers four fields across visits — the last activity, the locale and
+the two distortion toggles — through the pure module in `src/lib/persist/storage.ts`.
+No instant, no camera and no mission is stored, so "the last activity comes
+back" means: a return visit opens on the Earth as a first visit does, with a
+visible resume control naming that activity; taking it dispatches the ordinary
+`open-activity`. `resumeOffer` owns the rule (sandbox only, known id only); the
+page owns the storage adapter and the "offer already made" flag.
+
+## The instant
+
+`Instant` is epoch milliseconds, UTC — a plain number, never a `Date`, and it
+never leaves the state. Positions are a pure function of the instant, so
+scrubbing is exactly reversible: same instant → same state, bit for bit. A test
+round-trips through 24 instants and back to assert it.
+
+## The time span
+
+`state.timeSpan` is derived state, kept **out of `SessionEvent`**: whatever runs
+(the sandbox defaults to a year) declares the window, and no event can move the
+instant outside the timeline that is showing it. Playback speed is
+`state.settings.playbackSpeed`, in simulated days per real second.
+
+## Things a later ticket must not do here
+
+- Do not import Three.js, Svelte or the DOM.
+- Do not cache positions on a frame counter. If you cache, cache on the instant.
+- Do not compute a derived quantity in a component; add a contributor and test
+  it here.
+- Do not add an answer control (multiple choice, text field, radio, checkbox).
+  `src/lib/ui/no-form.test.ts` fails the suite if one appears; see its comment
+  for the exemption rule.
+- Do not let anything overwrite a recorded prediction, and do not let
+  `reveal-mission` through while the success predicate is not satisfied.
