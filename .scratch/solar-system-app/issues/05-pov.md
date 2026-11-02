@@ -4,7 +4,7 @@
 
 **Blocked by:** 03 — Time
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [x] The panel's border carries the same colour as its dot
 - [x] Daylight is derived from the Sun's elevation above the horizon, never from a clock
@@ -31,3 +31,10 @@
   the centre.
 - Night-sky stars in `PovPanel` are decorative placeholders; ticket 16 replaces
   the star layer and adds the Moon and the visibility limit.
+
+## Resolution
+
+Resolved on the integration branch `feat/solar-system-app` (PR #1), every checkbox above ticked and
+verified by `pnpm check`, `pnpm test --run` and `pnpm build`. The branch was reviewed on two axes —
+the repo's documented standards and this ticket's spec — and the findings are recorded in
+`.scratch/solar-system-app/spec.md` under `## Code review`.

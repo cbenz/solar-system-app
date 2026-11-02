@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** done
+**Status:** resolved
 
 - [x] The build output is static files and runs with no server
 - [x] Opening the app shows the Earth, and nothing else asking for attention
@@ -31,3 +31,10 @@
   message catalogues.
 - `src/lib/session/` was not created: this ticket needs no session module and
   inventing one here would pre-empt ticket 03.
+
+## Resolution
+
+Resolved on the integration branch `feat/solar-system-app` (PR #1), every checkbox above ticked and
+verified by `pnpm check`, `pnpm test --run` and `pnpm build`. The branch was reviewed on two axes —
+the repo's documented standards and this ticket's spec — and the findings are recorded in
+`.scratch/solar-system-app/spec.md` under `## Code review`.

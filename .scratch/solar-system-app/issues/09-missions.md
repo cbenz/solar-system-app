@@ -4,7 +4,7 @@
 
 **Blocked by:** 07 — Activities as data
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [x] The prediction is recorded before the reveal, and a wrong prediction is accepted and kept
 - [x] The answer arrives as something visible in the scene, not as a score or a verdict
@@ -63,3 +63,10 @@ scene the mission offers, or the child can never commit.
   panel and the toolbar launcher are wired but idle. The two test missions live
   in `src/activities/__fixtures__/mission.activity.ts` with fixture-only keys.
 - No scoring, no level change, no persistence: out of scope here.
+
+## Resolution
+
+Resolved on the integration branch `feat/solar-system-app` (PR #1), every checkbox above ticked and
+verified by `pnpm check`, `pnpm test --run` and `pnpm build`. The branch was reviewed on two axes —
+the repo's documented standards and this ticket's spec — and the findings are recorded in
+`.scratch/solar-system-app/spec.md` under `## Code review`.

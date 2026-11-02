@@ -37,3 +37,10 @@
   resolves `$state` as a store subscription of a variable named `state`, so a
   second `$state` declaration in the same component fails to type-check even
   though the build succeeds.
+
+## Resolution
+
+Resolved on the integration branch `feat/solar-system-app` (PR #1), every checkbox above ticked and
+verified by `pnpm check`, `pnpm test --run` and `pnpm build`. The branch was reviewed on two axes —
+the repo's documented standards and this ticket's spec — and the findings are recorded in
+`.scratch/solar-system-app/spec.md` under `## Code review`.

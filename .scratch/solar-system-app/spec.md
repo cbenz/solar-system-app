@@ -1,6 +1,6 @@
 # Solar system learning app — spec
 
-Status: ready-for-agent
+Status: resolved
 
 ## Problem Statement
 
@@ -325,3 +325,9 @@ carry a judgement note.
 | C2 speculative `SunRayOptions` | **Fixed.** The options type and parameter are gone; `parallelSunRays(instant)` uses its fixed readable bundle. |
 | C3 session depending on `$lib/scene/random` | **Fixed.** `mulberry32` moved to `src/lib/random.ts`; the renderer and the session both import that neutral module. |
 | C4 `sandbox.ts` divergent change | **Fixed.** Split into `sandbox-orbit.ts`, `sandbox-editing.ts`, `sandbox-escape.ts` and `sandbox-sun.ts`; `sandbox.ts` is a re-export barrel, so the public surface and every existing test are unchanged. |
+
+## Resolution
+
+Every ticket under `issues/` is resolved and every checkbox is ticked. The whole spec is implemented
+on the integration branch `feat/solar-system-app` (PR #1). What the code review found, and what was
+done about each finding, is in the `## Code review` section above.

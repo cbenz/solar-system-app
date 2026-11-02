@@ -4,7 +4,7 @@
 
 **Blocked by:** 07 — Activities as data
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [x] A properties card per body opens from the toolbar, and editing requires pressing the pencil first
 - [x] Mass, distance and speed are editable, and the orbit changes accordingly
@@ -38,3 +38,10 @@
 - The scene is geocentric (the Earth is the drawn origin), so a drag is converted back to
   a position relative to the Earth; the page adds the Earth back for the Sun's absolute event.
 - Not done: N-body physics and collisions (out of scope), and no new activities.
+
+## Resolution
+
+Resolved on the integration branch `feat/solar-system-app` (PR #1), every checkbox above ticked and
+verified by `pnpm check`, `pnpm test --run` and `pnpm build`. The branch was reviewed on two axes —
+the repo's documented standards and this ticket's spec — and the findings are recorded in
+`.scratch/solar-system-app/spec.md` under `## Code review`.

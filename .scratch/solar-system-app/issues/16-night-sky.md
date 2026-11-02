@@ -4,7 +4,7 @@
 
 **Blocked by:** 05 — POV
 
-**Status:** done
+**Status:** resolved
 
 - [x] Stars are decorative and the app never claims otherwise
 - [x] The Moon is drawn at its true position, with the phase the model implies
@@ -43,3 +43,10 @@
 - **Not done, on purpose:** latitudes (11), seasons and eclipses (13–14) untouched; no planets in the
   night sky (nothing asks for them); no true-size Moon in the POV (the disc is enlarged to stay
   readable and the app already says sizes are distorted).
+
+## Resolution
+
+Resolved on the integration branch `feat/solar-system-app` (PR #1), every checkbox above ticked and
+verified by `pnpm check`, `pnpm test --run` and `pnpm build`. The branch was reviewed on two axes —
+the repo's documented standards and this ticket's spec — and the findings are recorded in
+`.scratch/solar-system-app/spec.md` under `## Code review`.

@@ -26,3 +26,10 @@
 - **One mission is declared** (`zenith-day`, target the June solstice ±2 days) so the activity exercises the mission schema and its catalogue keys. Ticket 09 owns the runner and may reword it; the target and feedback keys are data only.
 - **No tilt slider**, per scope; the circles are declared as given. Ticket 13 can drive their latitude through the same `latitudeCircles` field when it adds the setting.
 - The Equator annual sum is asserted within 10 minutes: one-minute predicate sampling measured a 6-minute shortfall over 365 days, while the geometry is exactly 12 h per day. The symmetry tolerance is 20 minutes at the Polar Circle because the elliptical orbit's speed is not symmetric in time about the solstice (measured 13–16 min at ±30 d); at the Equator, Tropic and Paris it stays under 2 min.
+
+## Resolution
+
+Resolved on the integration branch `feat/solar-system-app` (PR #1), every checkbox above ticked and
+verified by `pnpm check`, `pnpm test --run` and `pnpm build`. The branch was reviewed on two axes —
+the repo's documented standards and this ticket's spec — and the findings are recorded in
+`.scratch/solar-system-app/spec.md` under `## Code review`.

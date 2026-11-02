@@ -4,7 +4,7 @@
 
 **Blocked by:** 06 — Placing observers, 08 — Guide, 09 — Missions
 
-**Status:** done
+**Status:** resolved
 
 - [x] The activity opens from a marker on the Earth and closes back to the sandbox
 - [x] The guide takes the child from one noon to the next and back into darkness
@@ -48,3 +48,10 @@ observer to the derived Polar Circle, show the June solstice, then widen the tim
 solstices and land on the December solstice. `day-and-night.test.ts` walks that guide end to end and
 asserts a night with no day, so the "six months later" checkbox is no longer ticked by a session
 opened directly at December.
+
+## Resolution
+
+Resolved on the integration branch `feat/solar-system-app` (PR #1), every checkbox above ticked and
+verified by `pnpm check`, `pnpm test --run` and `pnpm build`. The branch was reviewed on two axes —
+the repo's documented standards and this ticket's spec — and the findings are recorded in
+`.scratch/solar-system-app/spec.md` under `## Code review`.

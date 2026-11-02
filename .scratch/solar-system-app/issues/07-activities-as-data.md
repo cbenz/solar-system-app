@@ -4,7 +4,7 @@
 
 **Blocked by:** 05 — POV
 
-**Status:** done
+**Status:** resolved
 
 - [x] Dropping in an activity module with no other change makes its marker appear and makes it openable
 - [x] An activity declares its subsystem, its POV count, its time span, its camera presets and its settings
@@ -54,3 +54,10 @@
   `set-setting` are in place; the ticket only asked the toolbar to render
   camera presets. Sandbox `set-setting` stays a no-op (it did not exist before
   this ticket), so `playbackSpeed` keeps its default outside an activity.
+
+## Resolution
+
+Resolved on the integration branch `feat/solar-system-app` (PR #1), every checkbox above ticked and
+verified by `pnpm check`, `pnpm test --run` and `pnpm build`. The branch was reviewed on two axes —
+the repo's documented standards and this ticket's spec — and the findings are recorded in
+`.scratch/solar-system-app/spec.md` under `## Code review`.

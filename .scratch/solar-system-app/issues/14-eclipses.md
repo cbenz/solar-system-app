@@ -4,7 +4,7 @@
 
 **Blocked by:** 11 — Latitudes
 
-**Status:** done
+**Status:** resolved
 
 - [x] The child can place the Moon and find the alignment
 - [x] Three POVs show totality, partiality and plain sunlight at the same instant
@@ -81,3 +81,10 @@ from the ephemeris (§1.3 forbids it), no annular-eclipse staging (the predicate
 handles it, the activity does not stage one), and no browser check — headless
 Chrome is unavailable here, so `pnpm check`, `pnpm test --run` and `pnpm build`
 are the whole verification.
+
+## Resolution
+
+Resolved on the integration branch `feat/solar-system-app` (PR #1), every checkbox above ticked and
+verified by `pnpm check`, `pnpm test --run` and `pnpm build`. The branch was reviewed on two axes —
+the repo's documented standards and this ticket's spec — and the findings are recorded in
+`.scratch/solar-system-app/spec.md` under `## Code review`.

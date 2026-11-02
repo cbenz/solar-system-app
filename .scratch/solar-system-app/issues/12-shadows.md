@@ -4,7 +4,7 @@
 
 **Blocked by:** 06 — Placing observers
 
-**Status:** done
+**Status:** resolved
 
 - [x] A stick and its shadow are visible in the POV
 - [x] The shadow is longest at sunrise and sunset, shortest at noon, and points the other way in the afternoon
@@ -38,3 +38,10 @@
 - The shadow length is clamped at 50 × the stick's height, documented in
   `MAX_SHADOW_LENGTH_FACTOR`. The POV drawer saturates the drawn length so a
   sunrise shadow reaches the horizon instead of stretching into a smear.
+
+## Resolution
+
+Resolved on the integration branch `feat/solar-system-app` (PR #1), every checkbox above ticked and
+verified by `pnpm check`, `pnpm test --run` and `pnpm build`. The branch was reviewed on two axes —
+the repo's documented standards and this ticket's spec — and the findings are recorded in
+`.scratch/solar-system-app/spec.md` under `## Code review`.

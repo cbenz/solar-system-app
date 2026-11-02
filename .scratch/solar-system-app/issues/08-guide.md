@@ -4,7 +4,7 @@
 
 **Blocked by:** 07 — Activities as data, 03 — Time
 
-**Status:** done
+**Status:** resolved
 
 - [x] A guide is an ordered list of steps, each applying a camera preset, an instant, and optionally a tilt or a set of POVs
 - [x] A step declared as waiting does not advance until the child presses next
@@ -21,3 +21,10 @@
 - **Golden helper.** `src/activities/guide-golden.ts` exports `describeGuideGolden(activity)` and `runGuideGolden(activity)`; `src/activities/guide.test.ts` walks the registry and calls `describeGuideGolden` per activity, so a new activity module is covered with no test edit. An empty guide is registered as `it.skip`, and `runGuideGolden` returns `{ skipped: true }` rather than passing silently.
 - **Activities 10–14 still have empty guides**, so `guide: day-and-night` currently shows as one skipped test. That is the expected hand-off.
 - **No component or WebGL tests** were added (spec, Testing Decisions). The panel is a renderer; its decisions (sentence spans, speech plan, step application) are pure and tested.
+
+## Resolution
+
+Resolved on the integration branch `feat/solar-system-app` (PR #1), every checkbox above ticked and
+verified by `pnpm check`, `pnpm test --run` and `pnpm build`. The branch was reviewed on two axes —
+the repo's documented standards and this ticket's spec — and the findings are recorded in
+`.scratch/solar-system-app/spec.md` under `## Code review`.

@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 — Boot and Earth
 
-**Status:** done
+**Status:** resolved
 
 - [x] The session module takes an event and returns the new state plus a scene snapshot, and renders nothing
 - [x] The Earth's position at a known instant matches a published astronomical value within a small tolerance
@@ -41,3 +41,10 @@
 - No component tests, per the spec. There was no browser automation available in
   this worktree, so the timeline was verified by `svelte-check`, the static build
   and the pure modules, not by a visual pass.
+
+## Resolution
+
+Resolved on the integration branch `feat/solar-system-app` (PR #1), every checkbox above ticked and
+verified by `pnpm check`, `pnpm test --run` and `pnpm build`. The branch was reviewed on two axes —
+the repo's documented standards and this ticket's spec — and the findings are recorded in
+`.scratch/solar-system-app/spec.md` under `## Code review`.

@@ -4,7 +4,7 @@
 
 **Blocked by:** 03 — Time
 
-**Status:** done
+**Status:** resolved
 
 - [x] Both switches are off on a first visit
 - [x] Turning on true distance while true size stays off keeps the bodies visible at their enlarged size
@@ -47,3 +47,10 @@
   is a second distortion to decide then, not a factor to sneak in here.
 - No browser was available in the headless environment, so the banner's position
   and the two new buttons were type-checked and built, not visually inspected.
+
+## Resolution
+
+Resolved on the integration branch `feat/solar-system-app` (PR #1), every checkbox above ticked and
+verified by `pnpm check`, `pnpm test --run` and `pnpm build`. The branch was reviewed on two axes —
+the repo's documented standards and this ticket's spec — and the findings are recorded in
+`.scratch/solar-system-app/spec.md` under `## Code review`.

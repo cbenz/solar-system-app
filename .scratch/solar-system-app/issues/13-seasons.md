@@ -4,7 +4,7 @@
 
 **Blocked by:** 11 — Latitudes, 12 — Shadows
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [x] Paris and Sydney are visible at the same instant, one in summer and one in winter, both the same distance from the Sun
 - [x] The child can state the distance explanation, and the app then tests it instead of contradicting it
@@ -49,3 +49,10 @@
   (optional `tiltDeg` parameters on the observer/shadow functions, an optional
   `SeasonScene` on `SceneSnapshot`, a scene contributor, and the new UI mounts). No N-body
   model was introduced.
+
+## Resolution
+
+Resolved on the integration branch `feat/solar-system-app` (PR #1), every checkbox above ticked and
+verified by `pnpm check`, `pnpm test --run` and `pnpm build`. The branch was reviewed on two axes —
+the repo's documented standards and this ticket's spec — and the findings are recorded in
+`.scratch/solar-system-app/spec.md` under `## Code review`.

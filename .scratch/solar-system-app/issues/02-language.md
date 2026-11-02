@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 — Boot and Earth
 
-**Status:** done
+**Status:** resolved
 
 - [x] No literal user-visible string exists anywhere outside the message catalogues
 - [x] The app opens in French on a French device and in English on any other
@@ -38,3 +38,10 @@
   `FOUNDATION.md` said.
 - Catalogue seed vocabulary is the glossary's "French labels" table (13 keys), plus the title
   and the three language-switch keys. No speculative activity strings were added.
+
+## Resolution
+
+Resolved on the integration branch `feat/solar-system-app` (PR #1), every checkbox above ticked and
+verified by `pnpm check`, `pnpm test --run` and `pnpm build`. The branch was reviewed on two axes —
+the repo's documented standards and this ticket's spec — and the findings are recorded in
+`.scratch/solar-system-app/spec.md` under `## Code review`.

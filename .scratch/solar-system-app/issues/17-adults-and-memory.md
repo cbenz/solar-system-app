@@ -4,7 +4,7 @@
 
 **Blocked by:** 10 — Day and night, completed
 
-**Status:** done
+**Status:** resolved
 
 - [x] A sidebar lists every activity, with its level
 - [x] The last activity and the active locale come back on a return visit
@@ -137,3 +137,10 @@ which is a gesture (`scene/gesture.ts`), not a control, and is exempt by ticket
   panels, so two sets of controls never compete for the same corner.
 - Every control keeps its 44 px minimum. The sandbox body list shows the Sun, Earth and Moon only;
   the other planets are tapped in the scene, which avoids ten pills on a phone.
+
+## Resolution
+
+Resolved on the integration branch `feat/solar-system-app` (PR #1), every checkbox above ticked and
+verified by `pnpm check`, `pnpm test --run` and `pnpm build`. The branch was reviewed on two axes —
+the repo's documented standards and this ticket's spec — and the findings are recorded in
+`.scratch/solar-system-app/spec.md` under `## Code review`.
